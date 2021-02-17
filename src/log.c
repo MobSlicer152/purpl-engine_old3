@@ -1,8 +1,8 @@
 #include "purpl/log.h"
 
 struct purpl_logger *PURPL_EXPORT
-purpl_init_logger(const ubyte *first_index_ret, ubyte default_level,
-		  ubyte first_max_level, const char *first_log_path, ...)
+purpl_init_logger(const ubyte *first_index_ret, byte default_level,
+		  byte first_max_level, const char *first_log_path, ...)
 {
 	uint i;
 	struct purpl_logger *logger;
@@ -31,8 +31,8 @@ purpl_init_logger(const ubyte *first_index_ret, ubyte default_level,
 	first = purpl_fmt_text_va(&len, first_log_path, args);
 	va_end(args);
 
-	/* Clear the file pointers */
-	memset(logger->logs, 0, PURPL_MAX_LOGS * sizeof(FILE *));
+	/* Allocate the file stream pointers */
+	logger->logs = PURPL_CALLOC(64, FILE *);
 
 	/* Open the first log and fill out the structure */
 	logger->default_index = purpl_open_log(logger, first_max_level, first) &
@@ -54,7 +54,7 @@ purpl_init_logger(const ubyte *first_index_ret, ubyte default_level,
 	return logger;
 }
 
-int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, ubyte max_level,
+int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, byte max_level,
 				const char *path, ...)
 {
 	ubyte index;
@@ -110,15 +110,15 @@ int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, ubyte max_level,
 #define PRE_INFO "[info] "
 #define PRE_DEBUG "[debug] "
 
-size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
-				    ubyte level, const char *fmt, ...)
+size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
+				    const char *file, const int line,
+				    byte index, byte level, const char *fmt,
+				    ...)
 {
 	char *fmt_ptr;
-	char *msg;
 	char *lvl_pre;
 	ubyte idx;
 	ubyte lvl;
-	size_t orig_len;
 	size_t len;
 	size_t written;
 	FILE *fp;
@@ -127,17 +127,15 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
 	PURPL_RESET_ERRNO;
 
 	/* Check our args */
-	if (!logger || !fmt) {
+	if (!logger || !file || !line || !fmt) {
 		errno = EINVAL;
 		return -1;
 	}
 
 	/* Format fmt */
 	va_start(args, fmt);
-	fmt_ptr = purpl_fmt_text_va(&orig_len, fmt, args);
+	fmt_ptr = purpl_fmt_text_va(&len, fmt, args);
 	va_end(args);
-	len = ((orig_len < 0) ? strlen(fmt_ptr) : orig_len) + strlen(FILENAME) +
-	      2; /* For calloc and fwrite */
 
 	/* Evaluate what level to use */
 	lvl = (level < 0) ? logger->default_level : level;
@@ -145,7 +143,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
 	case WTF:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WTF) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ?: free(fmt_ptr);
+			(len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -155,7 +153,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
 	case FATAL:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_FATAL) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ?: free(fmt_ptr);
+			(len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -165,7 +163,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
 	case ERROR:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_ERROR) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ?: free(fmt_ptr);
+			(len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -175,7 +173,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
 	case WARNING:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WARNING) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ?: free(fmt_ptr);
+			(len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -185,7 +183,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
 	case INFO:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_INFO) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ?: free(fmt_ptr);
+			(len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -195,7 +193,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
 	case DEBUG:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_DEBUG) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ?: free(fmt_ptr);
+			(len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -205,35 +203,21 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
 	}
 
 	/* Figure out our index */
-	idx = index & 0xFFFFFF;
-	idx = (idx < 0) ? logger->default_index : idx;
+	idx = (index < 0) ? logger->default_index : index;
 	fp = logger->logs[idx];
 
-	/* Put together the message */
-	msg = PURPL_CALLOC(len, char);
-	if (!msg) {
-		free(lvl_pre);
-		(orig_len < 0) ?: free(fmt_ptr);
-		errno = ENOMEM;
-		return -1;
-	}
-
-	stbsp_sprintf(msg, "%s %s %s\n", lvl_pre, FILENAME, fmt_ptr);
-
-	/* Free everything except msg as they're no longer needed */
-	free(fmt_ptr);
-	free(lvl_pre);
-
 	/* Write the message */
-	written = fwrite(msg, len, len, fp);
+	written = fprintf(fp, "%s%s:%d: %s\n", lvl_pre, file, line, fmt_ptr);
 	if (!written) {
-		free(msg);
+		free(fmt_ptr);
+		free(lvl_pre);
 		errno = EIO;
 		return -1;
 	}
 
-	/* Free message too */
-	free(msg);
+	/* Free msg too */
+	free(fmt_ptr);
+	free(lvl_pre);
 
 	PURPL_RESET_ERRNO;
 

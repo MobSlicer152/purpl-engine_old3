@@ -1,6 +1,6 @@
 #include "purpl/log.h"
 
-struct purpl_logger *purpl_init_logger(const ubyte *first_index_ret,
+struct purpl_logger *PURPL_EXPORT purpl_init_logger(const ubyte *first_index_ret,
 				       ubyte default_level,
 				       ubyte first_max_level,
 				       const char *first_log_path, ...)
@@ -55,7 +55,7 @@ struct purpl_logger *purpl_init_logger(const ubyte *first_index_ret,
 	return logger;
 }
 
-int purpl_open_log(struct purpl_logger *logger, ubyte max_level,
+int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, ubyte max_level,
 		   const char *path, ...)
 {
 	ubyte index;
@@ -111,7 +111,7 @@ int purpl_open_log(struct purpl_logger *logger, ubyte max_level,
 #define PRE_INFO "[info] "
 #define PRE_DEBUG "[debug] "
 
-size_t purpl_write_log(struct purpl_logger *logger, ubyte index, ubyte level,
+size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ubyte level,
 		       const char *fmt, ...)
 {
 	char *fmt_ptr;

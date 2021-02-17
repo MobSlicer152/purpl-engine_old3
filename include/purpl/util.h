@@ -75,7 +75,7 @@
 #if _WIN32 && _MSC_VER
 #define PURPL_EXPORT __declspec(dllexport)
 #else
-#define PURPL_EXPORT extern
+#define PURPL_EXPORT
 #endif
 
 /**

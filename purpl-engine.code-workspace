@@ -15,8 +15,7 @@
 			"editor.detectIndentation": false
 		},
 		"files.associations": {
-			"stb_sprintf.h": "c",
-			"purpl.h": "c"
+			"*.h": "c"
 		}
 	}
 }

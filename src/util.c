@@ -1,7 +1,8 @@
 #define STB_SPRINTF_IMPLEMENTATION
 #include "purpl/util.h"
 
-char *PURPL_EXPORT purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args)
+char *PURPL_EXPORT purpl_fmt_text_va(size_t *len_ret, const char *fmt,
+				     va_list args)
 {
 	size_t len;
 	char *buf;
@@ -67,4 +68,3 @@ char *PURPL_EXPORT purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 
 	return fmt_ptr;
 }
-

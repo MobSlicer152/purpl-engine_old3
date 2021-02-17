@@ -1,9 +1,8 @@
 #include "purpl/log.h"
 
-struct purpl_logger *PURPL_EXPORT purpl_init_logger(const ubyte *first_index_ret,
-				       ubyte default_level,
-				       ubyte first_max_level,
-				       const char *first_log_path, ...)
+struct purpl_logger *PURPL_EXPORT
+purpl_init_logger(const ubyte *first_index_ret, ubyte default_level,
+		  ubyte first_max_level, const char *first_log_path, ...)
 {
 	uint i;
 	struct purpl_logger *logger;
@@ -56,7 +55,7 @@ struct purpl_logger *PURPL_EXPORT purpl_init_logger(const ubyte *first_index_ret
 }
 
 int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, ubyte max_level,
-		   const char *path, ...)
+				const char *path, ...)
 {
 	ubyte index;
 	char *fmt_path;
@@ -111,8 +110,8 @@ int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, ubyte max_level,
 #define PRE_INFO "[info] "
 #define PRE_DEBUG "[debug] "
 
-size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ubyte level,
-		       const char *fmt, ...)
+size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index,
+				    ubyte level, const char *fmt, ...)
 {
 	char *fmt_ptr;
 	char *msg;
@@ -137,8 +136,8 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ub
 	va_start(args, fmt);
 	fmt_ptr = purpl_fmt_text_va(&orig_len, fmt, args);
 	va_end(args);
-	len = ((orig_len < 0) ? strlen(fmt_ptr) : orig_len) +
-	      strlen(FILENAME) + 2; /* For calloc and fwrite */
+	len = ((orig_len < 0) ? strlen(fmt_ptr) : orig_len) + strlen(FILENAME) +
+	      2; /* For calloc and fwrite */
 
 	/* Evaluate what level to use */
 	lvl = (level < 0) ? logger->default_level : level;
@@ -146,7 +145,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ub
 	case WTF:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WTF) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ? : free(fmt_ptr);
+			(orig_len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -156,7 +155,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ub
 	case FATAL:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_FATAL) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ? : free(fmt_ptr);
+			(orig_len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -166,7 +165,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ub
 	case ERROR:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_ERROR) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ? : free(fmt_ptr);
+			(orig_len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -176,7 +175,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ub
 	case WARNING:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WARNING) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ? : free(fmt_ptr);
+			(orig_len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -186,7 +185,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ub
 	case INFO:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_INFO) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ? : free(fmt_ptr);
+			(orig_len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -196,7 +195,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ub
 	case DEBUG:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_DEBUG) + 1, char);
 		if (!lvl_pre) {
-			(orig_len < 0) ? : free(fmt_ptr);
+			(orig_len < 0) ?: free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -214,17 +213,17 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger, ubyte index, ub
 	msg = PURPL_CALLOC(len, char);
 	if (!msg) {
 		free(lvl_pre);
-		(orig_len < 0) ? : free(fmt_ptr);
+		(orig_len < 0) ?: free(fmt_ptr);
 		errno = ENOMEM;
 		return -1;
 	}
-	
+
 	stbsp_sprintf(msg, "%s %s %s\n", lvl_pre, FILENAME, fmt_ptr);
 
 	/* Free everything except msg as they're no longer needed */
 	free(fmt_ptr);
 	free(lvl_pre);
-	
+
 	/* Write the message */
 	written = fwrite(msg, len, len, fp);
 	if (!written) {

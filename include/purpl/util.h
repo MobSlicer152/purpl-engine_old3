@@ -32,7 +32,8 @@
  * @brief Concatenates two values together (and generates a warning 
  *  sometimes so ignore it if you get the right value)
  */
-#define PURPL_CONCAT(hi, lo, type, target) ((target)((hi) << (sizeof(type) << 3) | (type)(lo)))
+#define PURPL_CONCAT(hi, lo, type, target) \
+	((target)((hi) << (sizeof(type) << 3) | (type)(lo)))
 
 /**
  * @brief Gets the higher half of a value
@@ -42,7 +43,8 @@
 /**
  * @brief Gets the lower half of a value
  */
-#define PURPL_LOW(val, target) ((target)((val) & ((1 << (sizeof(val) << 3)) - 1)))
+#define PURPL_LOW(val, target) \
+	((target)((val) & ((1 << (sizeof(val) << 3)) - 1)))
 
 /**
  * @brief 10% more convenient `calloc` for arrays
@@ -57,8 +59,7 @@
 /**
  * @brief The base name and extension of the current file
  */
-#if _WIN32 && \
-	_MSC_VER /*
+#if _WIN32 && _MSC_VER /*
 	          * MSVC is the only (supported) Windows compiler that
 		  * uses backslashes in __FILE__
 		  */
@@ -104,7 +105,7 @@
  *  large value that should be good enough as a fallback. The buffer can and
  *  should be freed with `free`.
  */
-char *purpl_fmt_text_va(size_t *len, const char *fmt, va_list args);
+extern char *purpl_fmt_text_va(size_t *len, const char *fmt, va_list args);
 
 /**
  * @brief Formats text as `sprintf` would
@@ -119,6 +120,6 @@ char *purpl_fmt_text_va(size_t *len, const char *fmt, va_list args);
  *  large enough for the formatted message, which is more convenient than
  *  `sprintf`. Always `free` the buffer.
  */
-char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
+extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
 
 #endif /* !PURPL_UTIL_H */

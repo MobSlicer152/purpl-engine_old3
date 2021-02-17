@@ -54,10 +54,10 @@ struct purpl_logger {
  *  `purpl_close_log` to close an individual log or `purpl_end_logger` to
  *  close all the logs.
  */
-struct purpl_logger *purpl_init_logger(const ubyte *first_index_ret,
-				       ubyte default_level,
-				       ubyte first_max_level,
-				       const char *first_log_path, ...);
+extern struct purpl_logger *purpl_init_logger(const ubyte *first_index_ret,
+					      ubyte default_level,
+					      ubyte first_max_level,
+					      const char *first_log_path, ...);
 
 /**
  * @brief Opens a log file for a `purpl_logger` structure
@@ -72,8 +72,8 @@ struct purpl_logger *purpl_init_logger(const ubyte *first_index_ret,
  * This function opens a new log file for a `purpl_logger` structure
  *  to be written to. Close it with `purpl_logger_close`.
  */
-int purpl_open_log(struct purpl_logger *logger, ubyte max_level,
-		   const char *path, ...);
+extern int purpl_open_log(struct purpl_logger *logger, ubyte max_level,
+			  const char *path, ...);
 
 /**
  * @brief Writes a message to a log

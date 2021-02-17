@@ -100,7 +100,7 @@ extern int purpl_open_log(struct purpl_logger *logger, byte max_level,
  *  by `index`. Don't be an idiot, use the right format specifiers so that 
  *  your code is less vulnerable.
  */
-size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
+extern size_t purpl_write_log(struct purpl_logger *logger,
 				    const char *file, const int line,
 				    byte index, byte level, const char *fmt,
 				    ...);
@@ -110,6 +110,17 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
  * 
  * @param logger is the logger structure to use
  * @param index is the index of the log
+ * 
+ * Closes a log and clears its information. DO NOT USE THIS TO CLOSE THE
+ *  DEFAULT LOG, IT WILL CAUSE ERRORS. Instead, use `purpl_end_logger`.
  */
+extern void purpl_close_log(struct purpl_logger *logger, ubyte index);
+
+/**
+ * @brief Cleans up a `purpl_logger` structure
+ * 
+ * @param logger is the logger to terminate.
+ */
+extern void purpl_end_logger(struct purpl_logger *logger);
 
 #endif /* !PURPL_LOG_H */

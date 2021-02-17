@@ -15,5 +15,8 @@ int main(int argc, char *argv)
 	/* Write a message */
 	purpl_write_log(logger, FILENAME, __LINE__, -1, WTF, "test");
 
+	/* Close the logger */
+	purpl_end_logger(logger);
+
 	return 0;
 }

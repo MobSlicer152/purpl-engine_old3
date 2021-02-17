@@ -215,6 +215,9 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 		return -1;
 	}
 
+	/* Just in case */
+	fflush(fp);
+
 	/* Free msg too */
 	free(fmt_ptr);
 	free(lvl_pre);
@@ -222,4 +225,44 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	PURPL_RESET_ERRNO;
 
 	return written;
+}
+
+void PURPL_EXPORT purpl_close_log(struct purpl_logger *logger, ubyte index)
+{
+	PURPL_RESET_ERRNO;
+
+	/* Check our args */
+	if (!logger || !logger->logs[index]) {
+		errno = EINVAL;
+		return;
+	}
+
+	/* Close the log and clear its information */
+	fclose(logger->logs[index]);
+	logger->nlogs--;
+	logger->max_level[index] = 0;
+
+	PURPL_RESET_ERRNO;
+}
+
+void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger)
+{
+	uint i;
+
+	PURPL_RESET_ERRNO;
+
+	/* Check args */
+	if (!logger) {
+		errno = EINVAL;
+		return;
+	}
+
+	/* Close every log */
+	for (i = 0; i < logger->nlogs; i++)
+		purpl_close_log(logger, i);
+
+	/* Free the logger */
+	free(logger);
+
+	PURPL_RESET_ERRNO;
 }

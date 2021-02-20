@@ -10,9 +10,11 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_EXTENSIONS TRUE)
 
-set(CMAKE_C_FLAGS "-O2 -DPURPL_USE_${PURPL_GRAPHICS_API}")
+set(CMAKE_C_FLAGS "-O2 -Wall -DPURPL_USE_${PURPL_GRAPHICS_API}")
 if (NOT MSVC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-discarded-qualifiers")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra -Wno-discarded-qualifiers")
+else()
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -wd4996")
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

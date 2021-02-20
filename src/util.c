@@ -1,7 +1,7 @@
 #define STB_SPRINTF_IMPLEMENTATION
 #include "purpl/util.h"
 
-char *PURPL_EXPORT purpl_fmt_text_va(size_t *len_ret, const char *fmt,
+char *PURPL_EXPORT purpl_fmt_text_va(volatile size_t *len_ret, const char *fmt,
 				     va_list args)
 {
 	size_t len;
@@ -41,13 +41,13 @@ char *PURPL_EXPORT purpl_fmt_text_va(size_t *len_ret, const char *fmt,
 		len = -1;
 		return fmt;
 	}
-	memcpy(len_ret, &len, 8);
+	*len_ret = len;
 
 	PURPL_RESET_ERRNO;
 	return buf;
 }
 
-char *PURPL_EXPORT purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
+char *PURPL_EXPORT purpl_fmt_text(volatile size_t *len_ret, const char *fmt, ...)
 {
 	va_list args;
 	char *fmt_ptr;

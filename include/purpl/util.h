@@ -1,3 +1,11 @@
+/**
+ * @file util.h
+ * @author MobSlicer152 (brambleclaw1414@gmail.com)
+ * @brief Assorted utility functions
+ * 
+ * @copyright Copyright (c) MobSlicer152 2021
+ */
+
 #pragma once
 
 #ifndef PURPL_UTIL_H
@@ -80,6 +88,11 @@
 #endif
 
 /**
+ * @brief The specified parameter is unused
+ */
+#define NOPE(param) (void)(param)
+
+/**
  * @brief To be used for large buffers
  */
 #define PURPL_LARGE_BUF 1024
@@ -105,7 +118,7 @@
  *  large value that should be good enough as a fallback. The buffer can and
  *  should be freed with `free`.
  */
-extern char *purpl_fmt_text_va(size_t *len, const char *fmt, va_list args);
+extern char *purpl_fmt_text_va(volatile size_t *len_ret, const char *fmt, va_list args);
 
 /**
  * @brief Formats text as `sprintf` would
@@ -120,6 +133,6 @@ extern char *purpl_fmt_text_va(size_t *len, const char *fmt, va_list args);
  *  large enough for the formatted message, which is more convenient than
  *  `sprintf`. Always `free` the buffer.
  */
-extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
+extern char *purpl_fmt_text(volatile size_t *len_ret, const char *fmt, ...);
 
 #endif /* !PURPL_UTIL_H */

@@ -1,9 +1,15 @@
+#include <stdbool.h>
+
 #include <purpl/purpl.h>
 
-int main(int argc, char *argv)
+int main(int argc, char *argv[])
 {
 	ubyte log_index;
 	struct purpl_logger *logger;
+
+	/* Unused parameters */
+	NOPE(argc);
+	NOPE(argv);
 
 	/* Initialize a logger */
 	logger = purpl_init_logger(&log_index, INFO, DEBUG, "purpl.log");
@@ -13,10 +19,10 @@ int main(int argc, char *argv)
 	}
 
 	/* Write a message */
-	purpl_write_log(logger, FILENAME, __LINE__, -1, WTF, "test");
+	purpl_write_log(logger, FILENAME, __LINE__, -1, -1, "test");
 
 	/* Close the logger */
-	purpl_end_logger(logger);
+	purpl_end_logger(logger, true);
 
 	return 0;
 }

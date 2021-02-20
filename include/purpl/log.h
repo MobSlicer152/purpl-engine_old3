@@ -13,7 +13,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
 #include <stb_sprintf.h>
 
@@ -62,7 +64,7 @@ struct purpl_logger {
  *  `purpl_close_log` to close an individual log or `purpl_end_logger` to
  *  close all the logs.
  */
-extern struct purpl_logger *purpl_init_logger(const ubyte *first_index_ret,
+extern struct purpl_logger *purpl_init_logger(volatile ubyte *first_index_ret,
 					      byte default_level,
 					      byte first_max_level,
 					      const char *first_log_path, ...);
@@ -106,6 +108,16 @@ extern size_t purpl_write_log(struct purpl_logger *logger,
 				    ...);
 
 /**
+ * @brief Sets the max level for the specified log
+ * 
+ * @param logger is the logger to operate on
+ * @param index is the index of the log to change
+ * @param level is the new max level for the specified index
+ * @return Returns `level`;
+ */
+extern byte purpl_set_max_level(struct purpl_logger *logger, ubyte index, ubyte level);
+
+/**
  * @brief Closes a log
  * 
  * @param logger is the logger structure to use
@@ -120,7 +132,9 @@ extern void purpl_close_log(struct purpl_logger *logger, ubyte index);
  * @brief Cleans up a `purpl_logger` structure
  * 
  * @param logger is the logger to terminate.
+ * @param write_goodbye is whether or not to log a goodbye message to
+ *  each log before termination
  */
-extern void purpl_end_logger(struct purpl_logger *logger);
+extern void purpl_end_logger(struct purpl_logger *logger, bool write_goodbye);
 
 #endif /* !PURPL_LOG_H */

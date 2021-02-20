@@ -1,10 +1,9 @@
 #include "purpl/log.h"
 
 struct purpl_logger *PURPL_EXPORT
-purpl_init_logger(const ubyte *first_index_ret, byte default_level,
+purpl_init_logger(volatile ubyte *first_index_ret, byte default_level,
 		  byte first_max_level, const char *first_log_path, ...)
 {
-	uint i;
 	struct purpl_logger *logger;
 	char *first;
 	va_list args;
@@ -47,7 +46,7 @@ purpl_init_logger(const ubyte *first_index_ret, byte default_level,
 
 	/* Return the index of the first log\ */
 	first_index = logger->default_index;
-	memcpy(first_index_ret, &first_index, 1);
+	*first_index_ret = first_index;
 
 	PURPL_RESET_ERRNO;
 
@@ -143,7 +142,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case WTF:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WTF) + 1, char);
 		if (!lvl_pre) {
-			(len < 0) ?: free(fmt_ptr);
+			(!len) ? (NULL) : free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -153,7 +152,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case FATAL:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_FATAL) + 1, char);
 		if (!lvl_pre) {
-			(len < 0) ?: free(fmt_ptr);
+			(!len) ? (NULL) : free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -163,7 +162,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case ERROR:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_ERROR) + 1, char);
 		if (!lvl_pre) {
-			(len < 0) ?: free(fmt_ptr);
+			(!len) ? (NULL) : free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -173,7 +172,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case WARNING:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WARNING) + 1, char);
 		if (!lvl_pre) {
-			(len < 0) ?: free(fmt_ptr);
+			(!len) ? (NULL) : free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -183,7 +182,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case INFO:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_INFO) + 1, char);
 		if (!lvl_pre) {
-			(len < 0) ?: free(fmt_ptr);
+			(!len) ? (NULL) : free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -193,7 +192,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case DEBUG:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_DEBUG) + 1, char);
 		if (!lvl_pre) {
-			(len < 0) ?: free(fmt_ptr);
+			(!len) ? (NULL) : free(fmt_ptr);
 			errno = EIO;
 			return -1;
 		}
@@ -227,6 +226,26 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	return written;
 }
 
+extern byte purpl_set_max_level(struct purpl_logger *logger, ubyte index, ubyte level)
+{
+	ubyte idx = index & 0xFFFFFF;
+
+	PURPL_RESET_ERRNO;
+
+	/* Check arguments */
+	if (!logger || idx > logger->nlogs) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	/* Change the level */
+	logger->max_level[idx] = level & 0xFFF;
+
+	PURPL_RESET_ERRNO;
+
+	return level;
+}
+
 void PURPL_EXPORT purpl_close_log(struct purpl_logger *logger, ubyte index)
 {
 	PURPL_RESET_ERRNO;
@@ -245,7 +264,7 @@ void PURPL_EXPORT purpl_close_log(struct purpl_logger *logger, ubyte index)
 	PURPL_RESET_ERRNO;
 }
 
-void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger)
+void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger, _Bool write_goodbye)
 {
 	uint i;
 
@@ -258,8 +277,42 @@ void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger)
 	}
 
 	/* Close every log */
-	for (i = 0; i < logger->nlogs; i++)
+	for (i = 0; i < logger->nlogs; i++) {
+		/* Write a goodbye message if requested */
+		if (write_goodbye) {
+			char goodbye[512];
+			time_t now_raw;
+			struct tm *now;
+
+			/* Copy in the first part of the message */
+			strcpy(goodbye, "This logger instance is terminating. Have a ");
+
+			/* Now choose an adjective */
+			if (rand() % 10 < 5)
+				strcat(goodbye, "nice ");
+			else
+				strcat(goodbye, "good ");
+
+			/* Append the right time of day */
+			time(&now_raw);
+			now = localtime(&now_raw);
+			if (!now) /* time() failed */
+				strcat(goodbye, "day.");
+			else if (now->tm_hour < 12)
+				strcat(goodbye, "morning.");
+			else if (now->tm_hour >= 12 && now->tm_hour < 16)
+				strcat(goodbye, "afternoon.");
+			else if (now->tm_hour >= 16 && now->tm_hour < 18)
+				strcat(goodbye, "evening.");
+			else if (now->tm_hour >= 18)
+				strcat(goodbye, "night.");
+
+			purpl_write_log(logger, FILENAME, __LINE__, i, logger->max_level[i], "%s", goodbye);
+		}		
+
+		/* Close the log */
 		purpl_close_log(logger, i);
+	}
 
 	/* Free the logger */
 	free(logger);

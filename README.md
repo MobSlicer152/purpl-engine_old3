@@ -19,7 +19,7 @@ build/purpl-demo
 ```
 
 ## Libraries I plan on using
-These are some really awesome libraries that have served me well in my past attempts (all credit goes to their authors, who have made my task much easier. You can find all the licenses in their respective folders):
+These are some really awesome libraries that have served me well in my past attempts (all credit goes to their authors, who have made my task much easier, so thanks for that. You can find all the licenses in their respective folders):
 - [cglm](https://github.com/recp/cglm) is a great math library for doing linear algebra in C (good for graphics in particular)
 - [GLEW](https://github.com/nigels-com/glew) is an amazing OpenGL loader
 - [json-c](https://github.com/json-c/json-c) is good for parsing JSON

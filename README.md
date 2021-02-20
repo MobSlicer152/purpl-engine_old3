@@ -9,6 +9,9 @@ git clone --recursive https://github.com/MobSlicer152/purpl-engine.git
 ```
 and build like this
 ```sh
+# To avoid CMake complaining about glew not getting any sources, issue the following:
+make -C deps/glew/auto
+
 # Currently there's no special flag for graphics because only OpenGL is planned for (Vulkan is a pain)
 cmake -S. -Bbuild
 cmake --build build

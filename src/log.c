@@ -1,7 +1,7 @@
 #include "purpl/log.h"
 
 struct purpl_logger *PURPL_EXPORT
-purpl_init_logger(volatile ubyte *first_index_ret, byte default_level,
+purpl_init_logger(ubyte *first_index_ret, byte default_level,
 		  byte first_max_level, const char *first_log_path, ...)
 {
 	struct purpl_logger *logger;

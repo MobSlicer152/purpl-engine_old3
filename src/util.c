@@ -1,7 +1,7 @@
 #define STB_SPRINTF_IMPLEMENTATION
 #include "purpl/util.h"
 
-char *PURPL_EXPORT purpl_fmt_text_va(volatile size_t *len_ret, const char *fmt,
+char *PURPL_EXPORT purpl_fmt_text_va(size_t *len_ret, const char *fmt,
 				     va_list args)
 {
 	size_t len;
@@ -13,7 +13,7 @@ char *PURPL_EXPORT purpl_fmt_text_va(volatile size_t *len_ret, const char *fmt,
 	/* Check our parameters */
 	if (!len_ret || !fmt || !args) {
 		errno = EINVAL;
-		return NULL;
+		return fmt;
 	}
 
 	/* Copy the arglist */
@@ -47,7 +47,7 @@ char *PURPL_EXPORT purpl_fmt_text_va(volatile size_t *len_ret, const char *fmt,
 	return buf;
 }
 
-char *PURPL_EXPORT purpl_fmt_text(volatile size_t *len_ret, const char *fmt, ...)
+char *PURPL_EXPORT purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 {
 	va_list args;
 	char *fmt_ptr;
@@ -57,7 +57,7 @@ char *PURPL_EXPORT purpl_fmt_text(volatile size_t *len_ret, const char *fmt, ...
 	/* Check everything */
 	if (!len_ret || !fmt) {
 		errno = EINVAL;
-		return NULL;
+		return fmt;
 	}
 
 	va_start(args, fmt);

@@ -64,7 +64,7 @@ struct purpl_logger {
  *  `purpl_close_log` to close an individual log or `purpl_end_logger` to
  *  close all the logs.
  */
-extern struct purpl_logger *purpl_init_logger(volatile ubyte *first_index_ret,
+extern struct purpl_logger *purpl_init_logger(ubyte *first_index_ret,
 					      byte default_level,
 					      byte first_max_level,
 					      const char *first_log_path, ...);

@@ -118,7 +118,7 @@
  *  large value that should be good enough as a fallback. The buffer can and
  *  should be freed with `free`.
  */
-extern char *purpl_fmt_text_va(volatile size_t *len_ret, const char *fmt, va_list args);
+extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
 
 /**
  * @brief Formats text as `sprintf` would
@@ -133,6 +133,6 @@ extern char *purpl_fmt_text_va(volatile size_t *len_ret, const char *fmt, va_lis
  *  large enough for the formatted message, which is more convenient than
  *  `sprintf`. Always `free` the buffer.
  */
-extern char *purpl_fmt_text(volatile size_t *len_ret, const char *fmt, ...);
+extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
 
 #endif /* !PURPL_UTIL_H */

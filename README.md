@@ -23,4 +23,5 @@ These are some really awesome libraries that have served me well in my past atte
 - [cglm](https://github.com/recp/cglm) is a great math library for doing linear algebra in C (good for graphics in particular)
 - [GLEW](https://github.com/nigels-com/glew) is an amazing OpenGL loader
 - [json-c](https://github.com/json-c/json-c) is good for parsing JSON
+- [libarchive](https://github.com/libarchive/libarchive) is a super awesome archive reader that I intend to use for embedding assets into programs (still figuring it out)
 - [stb](https://github.com/nothings/stb) is a collection of wonderful open source libraries contained in single header files

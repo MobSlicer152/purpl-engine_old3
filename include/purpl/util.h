@@ -115,8 +115,8 @@
  * 
  * This function can be used as a simpler way of formatting text. It returns
  *  a buffer of either the necessary length for the formatted string or a
- *  large value that should be good enough as a fallback. The buffer can and
- *  should be freed with `free`.
+ *  large value that should be good enough as a fallback.  Always `free` the buffer,
+ *  unless len_ret is -1 and `fmt` can't be freed in that way.
  */
 extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
 
@@ -131,7 +131,8 @@ extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
  * 
  * This function is a convenient way of formatting text. It gives you a buffer
  *  large enough for the formatted message, which is more convenient than
- *  `sprintf`. Always `free` the buffer.
+ *  `sprintf`. Always `free` the buffer, unless len_ret is -1 and `fmt`
+ *  can't be freed in that way.
  */
 extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
 

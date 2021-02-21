@@ -42,10 +42,10 @@ enum purpl_log_level { WTF, FATAL, ERROR, WARNING, INFO, DEBUG };
  */
 struct purpl_logger {
 	FILE **logs; /**< The log files this logger can use */
-	ubyte nlogs : 6; /**< The number of logs open */
-	ubyte default_index : 6; /**< The default log */
-	ubyte default_level : 3; /**< The default log level */
-	ubyte max_level[PURPL_MAX_LOGS]; /**< The max level to write for each log */
+	u8 nlogs : 6; /**< The number of logs open */
+	u8 default_index : 6; /**< The default log */
+	u8 default_level : 3; /**< The default log level */
+	u8 max_level[PURPL_MAX_LOGS]; /**< The max level to write for each log */
 };
 
 /**
@@ -64,9 +64,9 @@ struct purpl_logger {
  *  `purpl_close_log` to close an individual log or `purpl_end_logger` to
  *  close all the logs.
  */
-extern struct purpl_logger *purpl_init_logger(ubyte *first_index_ret,
-					      byte default_level,
-					      byte first_max_level,
+extern struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
+					      s8 default_level,
+					      s8 first_max_level,
 					      const char *first_log_path, ...);
 
 /**
@@ -82,7 +82,7 @@ extern struct purpl_logger *purpl_init_logger(ubyte *first_index_ret,
  * This function opens a new log file for a `purpl_logger` structure
  *  to be written to. Close it with `purpl_logger_close`.
  */
-extern int purpl_open_log(struct purpl_logger *logger, byte max_level,
+extern int purpl_open_log(struct purpl_logger *logger, s8 max_level,
 			  const char *path, ...);
 
 /**
@@ -96,7 +96,7 @@ extern int purpl_open_log(struct purpl_logger *logger, byte max_level,
  * @param fmt the format string to be logged
  * 
  * @return
- * The number of bytes written.
+ * The number of s8s written.
  * 
  * Writes a message to a log opened by a `purpl_logger` structure indicated
  *  by `index`. Don't be an idiot, use the right format specifiers so that 
@@ -104,7 +104,7 @@ extern int purpl_open_log(struct purpl_logger *logger, byte max_level,
  */
 extern size_t purpl_write_log(struct purpl_logger *logger,
 				    const char *file, const int line,
-				    byte index, byte level, const char *fmt,
+				    s8 index, s8 level, const char *fmt,
 				    ...);
 
 /**
@@ -115,7 +115,7 @@ extern size_t purpl_write_log(struct purpl_logger *logger,
  * @param level is the new max level for the specified index
  * @return Returns `level`;
  */
-extern byte purpl_set_max_level(struct purpl_logger *logger, ubyte index, ubyte level);
+extern s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level);
 
 /**
  * @brief Closes a log
@@ -126,7 +126,7 @@ extern byte purpl_set_max_level(struct purpl_logger *logger, ubyte index, ubyte 
  * Closes a log and clears its information. DO NOT USE THIS TO CLOSE THE
  *  DEFAULT LOG, IT WILL CAUSE ERRORS. Instead, use `purpl_end_logger`.
  */
-extern void purpl_close_log(struct purpl_logger *logger, ubyte index);
+extern void purpl_close_log(struct purpl_logger *logger, u8 index);
 
 /**
  * @brief Cleans up a `purpl_logger` structure

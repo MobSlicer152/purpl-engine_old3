@@ -1,14 +1,14 @@
 #include "purpl/log.h"
 
 struct purpl_logger *PURPL_EXPORT
-purpl_init_logger(ubyte *first_index_ret, byte default_level,
-		  byte first_max_level, const char *first_log_path, ...)
+purpl_init_logger(u8 *first_index_ret, s8 default_level,
+		  s8 first_max_level, const char *first_log_path, ...)
 {
 	struct purpl_logger *logger;
 	char *first;
 	va_list args;
 	size_t len;
-	ubyte first_index;
+	u8 first_index;
 
 	PURPL_RESET_ERRNO;
 
@@ -53,10 +53,10 @@ purpl_init_logger(ubyte *first_index_ret, byte default_level,
 	return logger;
 }
 
-int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, byte max_level,
+int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, s8 max_level,
 				const char *path, ...)
 {
-	ubyte index;
+	u8 index;
 	char *fmt_path;
 	size_t len;
 	va_list args;
@@ -111,13 +111,13 @@ int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, byte max_level,
 
 size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 				    const char *file, const int line,
-				    byte index, byte level, const char *fmt,
+				    s8 index, s8 level, const char *fmt,
 				    ...)
 {
 	char *fmt_ptr;
 	char *lvl_pre;
-	ubyte idx;
-	ubyte lvl;
+	u8 idx;
+	u8 lvl;
 	size_t len;
 	size_t written;
 	FILE *fp;
@@ -226,9 +226,9 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	return written;
 }
 
-extern byte purpl_set_max_level(struct purpl_logger *logger, ubyte index, ubyte level)
+extern s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level)
 {
-	ubyte idx = index & 0xFFFFFF;
+	u8 idx = index & 0xFFFFFF;
 
 	PURPL_RESET_ERRNO;
 
@@ -246,7 +246,7 @@ extern byte purpl_set_max_level(struct purpl_logger *logger, ubyte index, ubyte 
 	return level;
 }
 
-void PURPL_EXPORT purpl_close_log(struct purpl_logger *logger, ubyte index)
+void PURPL_EXPORT purpl_close_log(struct purpl_logger *logger, u8 index)
 {
 	PURPL_RESET_ERRNO;
 

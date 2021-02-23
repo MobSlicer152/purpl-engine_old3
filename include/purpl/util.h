@@ -136,4 +136,22 @@ extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
  */
 extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
 
+/**
+ * @brief Maps a file into the process's virtual memory using the
+ *  appropriate system function
+ * 
+ * @param len_ret is the length of the mapped file
+ * @param fp is the file to map
+ * 
+ * @return Returns either the mapped file or NULL. Check `errno` if NULL is
+ *  returned.
+ * 
+ * This function provides a convenient way to map a file into memory which is
+ *  significantly more efficient than reading the file into memory. Seeing as
+ *  this process requires either a system call or a Win32 function, it's easier
+ *  to use this function instead because it's consistent. Note that len_ret is
+ *  only needed on POSIX systems (still pass it on Windows).
+ */
+extern char *purpl_map_file(size_t *len_ret, FILE *fp);
+
 #endif /* !PURPL_UTIL_H */

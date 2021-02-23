@@ -68,3 +68,36 @@ char *PURPL_EXPORT purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 
 	return fmt_ptr;
 }
+
+char *PURPL_EXPORT purpl_map_file(size_t *len_ret, FILE *fp)
+{
+	char *map;
+	size_t len;
+	size_t fpos;
+	int fd;
+
+	PURPL_RESET_ERRNO;
+
+	/* Check arguments */
+	if (!len_ret || !fp) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	/* Figure out how long the file is */
+	fpos = ftell(fp);
+	fseek(fp, 0, SEEK_END);
+	len = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+
+	/*
+	 * Why in K&R's great creation does Windows
+	 *  even _have_ file descriptors _and_ handles?!
+	 */
+	fd = fileno(fp);
+
+#ifdef _WIN32
+	
+#else /* Everything else is POSIX and therefore sane and logical */
+#endif /* _WIN32 */
+}

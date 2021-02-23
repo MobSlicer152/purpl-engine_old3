@@ -1,3 +1,11 @@
+/**
+ * @file types.h
+ * @author MobSlicer152 (brambleclaw1414@gmail.com)
+ * @brief Typedefs for convenience
+ * 
+ * @copyright Copyright (c) MobSlicer152 2021
+ */
+
 #pragma once
 
 #ifndef PURPL_TYPES_H

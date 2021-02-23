@@ -26,7 +26,8 @@ except IndexError:
 
 # Check if the file is there and not empty, in which case prompt whether to overwrite it
 if pathlib.Path(name).exists() and os.stat(name).st_size:
-    if input('File exists and is not empty, overwrite it? [no] ') == ('y' or 'Y' or 'yes' or 'Yes'):
+    res = input('File exists and is not empty, overwrite it? [no] ')
+    if res == 'y' or res == 'Y' or res == 'yes' or res == 'Yes':
         print('Overwriting file.')
     else:
         print('Not overwriting file.')

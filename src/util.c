@@ -72,8 +72,7 @@ char *PURPL_EXPORT purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 	return fmt_ptr;
 }
 
-struct purpl_mapping *PURPL_EXPORT purpl_map_file(size_t *len_ret,
-						  u8 protection, FILE *fp)
+struct purpl_mapping *PURPL_EXPORT purpl_map_file(u8 protection, FILE *fp)
 {
 	struct purpl_mapping *mapping;
 	u8 prot;
@@ -84,7 +83,7 @@ struct purpl_mapping *PURPL_EXPORT purpl_map_file(size_t *len_ret,
 	PURPL_RESET_ERRNO;
 
 	/* Check arguments */
-	if (!len_ret || !fp) {
+	if (!fp) {
 		errno = EINVAL;
 		return NULL;
 	}

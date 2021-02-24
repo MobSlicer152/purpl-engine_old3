@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
@@ -198,8 +199,22 @@ extern struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp);
  *  about the mapping to be unmapped
  * 
  * This function does no error checking because it's assumed that `info`
- *  will be unused after this.
+ *  will be unused after this (i.e. will be reassigned or something).
  */
 extern void purpl_unmap_file(struct purpl_mapping *info);
+
+/**
+ * @brief Read a file (either map it into memory or read it into a buffer)
+ *
+ * @param len_ret is the length of the file (you'll want to keep track of this)
+ * @param info is optional if `map` is false, otherwise you need it (if NULL,
+ *  `free` the buffer instead of unmapping)
+ * @param map is whether or not to map the file into memory instead of reading
+ *  it into a buffer (if this is true _AND_ info isn't NULL, don't free the
+ *  buffer, use `purpl_unmap_file`). Also, if this is `true`, writing to the
+ *  buffer _is_ safe
+ * @param fp is the file stream to read from/map
+ */
+extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **info, bool map, FILE *fp);
 
 #endif /* !PURPL_UTIL_H */

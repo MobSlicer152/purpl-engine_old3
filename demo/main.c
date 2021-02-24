@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 		return err;
 	}
 
-	/* Map a file as read-only */
+	/* Map a file as read-only (note: only small files should be mapped (under 4GB) */
 	map = purpl_map_file(0, fp);
 	if (!map) {
 		err = errno;

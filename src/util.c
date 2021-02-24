@@ -153,7 +153,7 @@ struct purpl_mapping *PURPL_EXPORT purpl_map_file(u8 protection, FILE *fp)
 		return NULL;
 	}
 #else /*
-       * Everything else is POSIX and therefore, simple, sane,
+       * Everything else is POSIX and therefore simple, sane,
        * logical, and consistent
        */
 	/* Determine protection */
@@ -220,4 +220,76 @@ void PURPL_EXPORT purpl_unmap_file(struct purpl_mapping *info)
 	free(info);
 
 	PURPL_RESET_ERRNO;
+}
+
+char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **info, bool map, FILE *fp)
+{
+	size_t len;
+	size_t fpos;
+	char *file;
+
+	PURPL_RESET_ERRNO;
+
+	/* Validate arguments */
+	if (!len_ret || !fp) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	/*
+	 * If something goes wrong, set map to false so that
+	 * the file (hopefully) still gets read
+	 */
+	if (map) {
+		struct purpl_mapping *mapping;
+
+		/* Check if info is NULL */
+		if (!info) {
+			errno = EINVAL;
+			map = false;
+		}
+
+		/* Map the file */
+		mapping = purpl_map_file(1, fp);
+		if (!mapping)
+			map = false;
+
+		/* Return info */
+		memcpy(info, &mapping, sizeof(void *));
+
+		/* Set file and len */
+		file = mapping->data;
+		len = mapping->len;
+	}
+	
+	/* Either mapping wasn't requested, or it failed */
+	if (!map) {
+		/* Determine file length */
+		fpos = ftell(fp);
+		fseek(fp, 0, SEEK_END);
+		len = ftell(fp);
+		fseek(fp, 0, SEEK_SET);
+
+		/* Allocate a buffer */
+		file = PURPL_CALLOC(len + 1, char);
+		if (!file)
+			return NULL;
+
+		/* Read into the buffer */
+		len = fread(file, sizeof(char), len, fp);
+		if (!file)
+			return file;
+
+		/* Ensure it's terminated */
+		file[len] = 0;
+
+		/* Put fp back to where it was */
+		len = fseek(fp, 0, fpos);
+	}
+
+	PURPL_RESET_ERRNO;
+
+	/* Return */
+	*len_ret = len;
+	return file;
 }

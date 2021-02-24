@@ -20,6 +20,15 @@ struct purpl_asset {
 	size_t size; /**< The size of `data` */
 };
 
-
+/**
+ * @brief Load an asset from a file, searching `search_paths`
+ *
+ * @param search_paths is the colon-separated list of absolute paths to search
+ *  for `name` in.
+ * @param map is whether or not to map the file instead of reading it into a
+ *  buffer (probably set this to true)
+ */
+extern struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
+						      bool map, const char *name, ...);
 
 #endif /* !PURPL_ASSET_H */

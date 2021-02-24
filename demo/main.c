@@ -6,6 +6,7 @@ int main(int argc, char *argv[])
 {
 	ubyte log_index;
 	FILE *fp;
+	int err; /* Save errno before logging an error message */
 	struct purpl_mapping *map;
 	struct purpl_logger *logger;
 
@@ -16,24 +17,31 @@ int main(int argc, char *argv[])
 	/* Initialize a logger */
 	logger = purpl_init_logger(&log_index, INFO, DEBUG, "purpl.log");
 	if (!logger) {
-		fprintf(stderr, "Error: %s\n", strerror(errno));
+		fprintf(stderr, "Error opening log file: %s\n", strerror(errno));
 		return -1;
 	}
 
-	/* Write a message */
-	purpl_write_log(logger, FILENAME, __LINE__, -1, -1, "test");
+	/* Log a message */
+	purpl_write_log(logger, FILENAME, __LINE__, -1, -1, "a message");
 
 	/* Open a file */
 	fp = fopen("a file", PURPL_READ);
-	if (!fp)
-		purpl_write_log(logger, FILENAME, __LINE__, -1, ERROR,
+	if (!fp) {
+		err = errno;
+		purpl_write_log(logger, FILENAME, __LINE__, -1, FATAL,
 				"Error opening file: %s", strerror(errno));
+		return err;
+	}
 
-	/* Map the file */
+	/* Map a file as read-only */
 	map = purpl_map_file(0, fp);
-	if (!map)
-		purpl_write_log(logger, FILENAME, __LINE__, -1, ERROR,
+	if (!map) {
+		err = errno;
+		purpl_write_log(logger, FILENAME, __LINE__, -1, FATAL,
 				"Error mapping file: %s\n", strerror(errno));
+		purpl_end_logger(logger, true);
+		return err;
+	}
 
 	/* Write the mapped file to the log */
 	purpl_write_log(logger, FILENAME, __LINE__, -1, INFO,

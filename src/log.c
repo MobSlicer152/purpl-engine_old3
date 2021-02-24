@@ -200,7 +200,6 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	if (!written) {
 		free(fmt_ptr);
 		free(lvl_pre);
-		errno = EIO;
 		return -1;
 	}
 

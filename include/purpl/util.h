@@ -32,6 +32,9 @@
 
 #include "types.h"
 
+/**
+ * @brief Defined when not Windows, to be expanded  
+ */
 #if !defined _WIN32 && !defined _MSC_VER && !defined __CYGWIN__
 #define PROBABLY_POSIX 1
 #endif
@@ -110,12 +113,7 @@
 	(__extension__({                              \
 		long int res;                         \
 		do                                    \
-			res = (long int)(expression); \
-		while (res == -1L && errno == EINTR); \
-		res;                                  \
-	}))
-#endif
-
+			res = false
 #define PURPL_READ "rb" /**< Read only */
 #define PURPL_WRITE "rb+" /**< Read _and_ write */
 #define PURPL_OVERWRITE "wb+" /**< Overwrite (read and write, but truncated) */
@@ -214,7 +212,27 @@ extern void purpl_unmap_file(struct purpl_mapping *info);
  *  buffer, use `purpl_unmap_file`). Also, if this is `true`, writing to the
  *  buffer _is_ safe
  * @param fp is the file stream to read from/map
+ *
+ * @return Returns the contents of the file (either a buffer or a pointer to
+ *  the pages containing the mapped contents of the file, see `info` and `map`)
  */
-extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **info, bool map, FILE *fp);
+extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **info,
+				bool map, FILE *fp);
+
+/**
+ * @brief Read a file from a path
+ * 
+ * @param len_ret is the length of the file (keep track of it)
+ * @param info is optional if map is false. If it's NULL, mapping failed and
+ *  you can use `free` on the buffer instead of `purpl_unmap_file`
+ * @param map is whether to map the file or read it into a buffer (see the 
+ *  description for `info`)
+ * @param path is the path to the file to read/map
+ *
+ * @return Returns the contents of the file (either a buffer or a pointer to
+ *  the pages containing the mapped contents of the file, see `info` and `map`)
+ */
+extern char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
+			     bool map, const char *path, ...);
 
 #endif /* !PURPL_UTIL_H */

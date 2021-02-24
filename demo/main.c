@@ -6,6 +6,8 @@ int main(int argc, char *argv[])
 {
 	ubyte log_index;
 	FILE *fp;
+	char *a_file;
+	size_t len;
 	int err; /* Save errno before logging an error message */
 	struct purpl_mapping *map;
 	struct purpl_logger *logger;
@@ -17,7 +19,8 @@ int main(int argc, char *argv[])
 	/* Initialize a logger */
 	logger = purpl_init_logger(&log_index, INFO, DEBUG, "purpl.log");
 	if (!logger) {
-		fprintf(stderr, "Error opening log file: %s\n", strerror(errno));
+		fprintf(stderr, "Error opening log file: %s\n",
+			strerror(errno));
 		return -1;
 	}
 
@@ -33,22 +36,27 @@ int main(int argc, char *argv[])
 		return err;
 	}
 
-	/* Map a file as read-only (note: only small files should be mapped (under 4GB) */
-	map = purpl_map_file(0, fp);
-	if (!map) {
+	/* Read a file (use the standard library for really big files) */
+	a_file = purpl_read_file(&len, &map, true, "a file");
+	if (!a_file) {
 		err = errno;
 		purpl_write_log(logger, FILENAME, __LINE__, -1, FATAL,
-				"Error mapping file: %s\n", strerror(errno));
+				"Error %s file: %s\n",
+				(map == NULL) ? "reading" : "mapping",
+				strerror(errno));
 		purpl_end_logger(logger, true);
 		return err;
 	}
 
-	/* Write the mapped file to the log */
+	/* Write a file's contents to the log */
 	purpl_write_log(logger, FILENAME, __LINE__, -1, INFO,
-			"Mapped contents of file \"a file\":\n%s", map->data);
+			"Contents of file \"a file\":\n%s", a_file);
 
-	/* Unmap a file */
-	purpl_unmap_file(map);
+	/* Remove the file from memory */
+	if (map != NULL)
+		purpl_unmap_file(map);
+	else
+		free(a_file);
 
 	/* Close the logger */
 	purpl_end_logger(logger, true);

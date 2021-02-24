@@ -222,11 +222,14 @@ void PURPL_EXPORT purpl_unmap_file(struct purpl_mapping *info)
 	PURPL_RESET_ERRNO;
 }
 
-char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **info, bool map, FILE *fp)
+char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret,
+				      struct purpl_mapping **info, bool map,
+				      FILE *fp)
 {
 	size_t len;
 	size_t fpos;
 	char *file;
+	bool will_map = map;
 
 	PURPL_RESET_ERRNO;
 
@@ -240,19 +243,19 @@ char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **in
 	 * If something goes wrong, set map to false so that
 	 * the file (hopefully) still gets read
 	 */
-	if (map) {
+	if (will_map) {
 		struct purpl_mapping *mapping;
 
 		/* Check if info is NULL */
 		if (!info) {
 			errno = EINVAL;
-			map = false;
+			will_map = false;
 		}
 
 		/* Map the file */
 		mapping = purpl_map_file(1, fp);
 		if (!mapping)
-			map = false;
+			will_map = false;
 
 		/* Return info */
 		memcpy(info, &mapping, sizeof(void *));
@@ -261,9 +264,9 @@ char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **in
 		file = mapping->data;
 		len = mapping->len;
 	}
-	
+
 	/* Either mapping wasn't requested, or it failed */
-	if (!map) {
+	if (!will_map) {
 		/* Determine file length */
 		fpos = ftell(fp);
 		fseek(fp, 0, SEEK_END);
@@ -285,6 +288,9 @@ char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **in
 
 		/* Put fp back to where it was */
 		len = fseek(fp, 0, fpos);
+
+		/* Ensure info is NULL */
+		memset(info, 0, sizeof(void *));
 	}
 
 	PURPL_RESET_ERRNO;
@@ -292,4 +298,34 @@ char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **in
 	/* Return */
 	*len_ret = len;
 	return file;
+}
+
+char *PURPL_EXPORT purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
+				   bool map, const char *path, ...)
+{
+	va_list args;
+	char *path_fmt;
+	size_t path_len;
+	FILE *fp;
+
+	/* Check args */
+	if (!len_ret || !info || !path) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	/* Format the path to the file */
+	va_start(args, path);
+	path_fmt = purpl_fmt_text_va(&path_len, path, args);
+	va_end(args);
+
+	/* Open the file */
+	fp = fopen(path_fmt, PURPL_WRITE);
+	if (!fp)
+		return NULL;
+
+	PURPL_RESET_ERRNO;
+
+	/* Return read_file_fp */
+	return purpl_read_file_fp(len_ret, info, map, fp);
 }

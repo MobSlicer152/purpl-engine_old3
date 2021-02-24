@@ -93,7 +93,7 @@ extern int purpl_open_log(struct purpl_logger *logger, s8 max_level,
  * @param level is the message level
  * @param fmt the format string to be logged
  * 
- * @return Returns he number of bytes written.
+ * @return Returns the number of bytes written.
  * 
  * Writes a message to a log opened by a `purpl_logger` structure indicated
  *  by `index`. Don't be an idiot, use the right format specifiers so that 

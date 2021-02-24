@@ -175,7 +175,7 @@ extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
  * @param fp is the file to map
  * 
  * @return Returns either information about the mapped file (use the `data` member)
- *  or NULL. Check `errno` if NULL is returned.
+ *  or `NULL`. Check `errno` if `NULL` is returned.
  * 
  * This function provides a convenient way to map a file into memory which is
  *  significantly more efficient than reading the file into memory. Seeing as
@@ -205,11 +205,11 @@ extern void purpl_unmap_file(struct purpl_mapping *info);
  * @brief Read a file (either map it into memory or read it into a buffer)
  *
  * @param len_ret is the length of the file (you'll want to keep track of this)
- * @param info is optional if `map` is false, otherwise you need it (if NULL,
+ * @param info is optional if `map` is false, otherwise you need it (if `NULL`,
  *  `free` the buffer instead of unmapping)
  * @param map is whether or not to map the file into memory instead of reading
- *  it into a buffer (if this is true _AND_ info isn't NULL, don't free the
- *  buffer, use `purpl_unmap_file`). Also, if this is `true`, writing to the
+ *  it into a buffer (if this is true _AND_ `info` isn't `NULL`, don't free the
+ *  buffer, use `purpl_unmap_file`). Also, if this is true, writing to the
  *  buffer _is_ safe
  * @param fp is the file stream to read from/map
  *
@@ -223,7 +223,7 @@ extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **info,
  * @brief Read a file from a path
  * 
  * @param len_ret is the length of the file (keep track of it)
- * @param info is optional if map is false. If it's NULL, mapping failed and
+ * @param info is optional if `map` is false. If it's `NULL`, mapping failed and
  *  you can use `free` on the buffer instead of `purpl_unmap_file`
  * @param map is whether to map the file or read it into a buffer (see the 
  *  description for `info`)

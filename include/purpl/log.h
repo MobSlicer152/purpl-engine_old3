@@ -56,8 +56,7 @@ struct purpl_logger {
  * @param first_max_level is the max message level for the first log. -1 means use the default of DEBUG
  * @param first_log_path is the path to the first log file
  * 
- * @return
- * Returns an initialized `purpl_logger` structure.
+ * @return Returns an initialized `purpl_logger` structure.
  * 
  * This function returns a `purpl_logger` structure, filled out based on the
  *  arguments passed. It can be passed to the other log functions. Use
@@ -76,8 +75,7 @@ extern struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
  * @param max_level is the max message level for the log. -1 means use the default
  * @param path is the path to the log file
  * 
- * @return
- * Returns the index of the log opened.
+ * @return Returns the index of the log opened.
  * 
  * This function opens a new log file for a `purpl_logger` structure
  *  to be written to. Close it with `purpl_logger_close`.
@@ -95,8 +93,7 @@ extern int purpl_open_log(struct purpl_logger *logger, s8 max_level,
  * @param level is the message level
  * @param fmt the format string to be logged
  * 
- * @return
- * The number of s8s written.
+ * @return Returns he number of bytes written.
  * 
  * Writes a message to a log opened by a `purpl_logger` structure indicated
  *  by `index`. Don't be an idiot, use the right format specifiers so that 
@@ -113,7 +110,7 @@ extern size_t purpl_write_log(struct purpl_logger *logger,
  * @param logger is the logger to operate on
  * @param index is the index of the log to change
  * @param level is the new max level for the specified index
- * @return Returns `level`;
+ * @return Returns `level`
  */
 extern s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level);
 

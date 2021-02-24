@@ -21,4 +21,5 @@ struct purpl_asset {
 };
 
 
+
 #endif /* !PURPL_ASSET_H */

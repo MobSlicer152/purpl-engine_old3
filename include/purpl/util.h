@@ -31,6 +31,10 @@
 
 #include "types.h"
 
+#if !defined _WIN32 && !defined _MSC_VER && !defined __CYGWIN__
+#define PROBABLY_POSIX 1
+#endif
+
 /**
  * @brief Gets the size of an array
  */
@@ -97,10 +101,37 @@
  */
 #define PURPL_LARGE_BUF 1024
 
-#define PURPL_READ "rb"
-#define PURPL_WRITE "rb+"
-#define PURPL_OVERWRITE "wb+"
-#define PURPL_APPEND "ab+"
+#ifdef PROBABLY_POSIX
+/**
+ * @brief glibc's macro for retrying interrupted syscalls  
+ */
+#define PURPL_RETRY_INTR(expression)                  \
+	(__extension__({                              \
+		long int res;                         \
+		do                                    \
+			res = (long int)(expression); \
+		while (res == -1L && errno == EINTR); \
+		res;                                  \
+	}))
+#endif
+
+#define PURPL_READ "rb" /**< Read only */
+#define PURPL_WRITE "rb+" /**< Read _and_ write */
+#define PURPL_OVERWRITE "wb+" /**< Overwrite (read and write, but truncated) */
+#define PURPL_APPEND "ab+" /**< Append */
+
+/**
+ * @brief Holds information about a mapped file
+ * 
+ * DO NOT USE `data` or `len` DIRECTLY IF THEY MIGHT GET MODIFIED!
+ */
+struct purpl_mapping {
+	void *data; /**< The actual mapped file */
+	size_t len; /**< The length of the file */
+#ifdef _WIN32
+	HANDLE handle; /**< Ewwy Win32 handle to the "mapping object" */
+#endif
+};
 
 /**
  * @brief Formats text as `vsprintf` would
@@ -140,18 +171,35 @@ extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
  * @brief Maps a file into the process's virtual memory using the
  *  appropriate system function
  * 
- * @param len_ret is the length of the mapped file
+ * @param protection is 0, 1, or 2 to indicate read-only, writable, or
+ *  executable (substituted with writable in the event of a permission error).
  * @param fp is the file to map
  * 
- * @return Returns either the mapped file or NULL. Check `errno` if NULL is
- *  returned.
+ * @return Returns either information about the mapped file (use the `data` member)
+ *  or NULL. Check `errno` if NULL is returned.
  * 
  * This function provides a convenient way to map a file into memory which is
  *  significantly more efficient than reading the file into memory. Seeing as
  *  this process requires either a system call or a Win32 function, it's easier
- *  to use this function instead because it's consistent. Note that len_ret is
- *  only needed on POSIX systems (still pass it on Windows).
+ *  to use this function instead because it's consistent (or at least tries to
+ *  be). Note that len_ret is only needed on POSIX systems (still pass it on
+ *  Windows). DO NOT FREE THE POINTER RETURNED, THAT'S NOT HOW THAT WORKS.
+ *  Use `purpl_unmap_file` with THE ORIGINAL ADDRESS RETURNED FROM THIS
+ *  FUNCTION OR BAD SHIT (!) WILL HAPPEN. On Linux, you'll get a segfault if
+ *  you try writing to read-only mappings,  and as far as I remember, Windows
+ *  will get mad too.
  */
-extern char *purpl_map_file(size_t *len_ret, FILE *fp);
+extern struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp);
+
+/**
+ * @brief Unmap a file mapped with `purpl_map_file`.
+ * 
+ * @param info is the `purpl_mapping` structure containing information
+ *  about the mapping to be unmapped
+ * 
+ * This function does no error checking because it's assumed that `info`
+ *  will be unused after this.
+ */
+extern void purpl_unmap_file(struct purpl_mapping *info);
 
 #endif /* !PURPL_UTIL_H */

@@ -14,7 +14,7 @@ set(CMAKE_C_FLAGS "-O2 -Wall -DPURPL_USE_${PURPL_GRAPHICS_API}")
 if (NOT MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra -Wno-discarded-qualifiers")
 else()
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -wd4996")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

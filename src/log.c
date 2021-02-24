@@ -20,10 +20,8 @@ purpl_init_logger(u8 *first_index_ret, s8 default_level,
 
 	/* Allocate the structure */
 	logger = PURPL_CALLOC(1, struct purpl_logger);
-	if (!logger) {
-		errno = ENOMEM;
+	if (!logger)
 		return NULL;
-	}
 
 	/* Format the path to the first log */
 	va_start(args, first_log_path);
@@ -84,10 +82,8 @@ int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, s8 max_level,
 		logger->logs[index] = stderr;
 	} else {
 		logger->logs[index] = fopen(fmt_path, PURPL_OVERWRITE);
-		if (logger->logs[index] == NULL) {
-			errno = EIO;
+		if (logger->logs[index] == NULL)
 			return -1;
-		}
 	}
 
 	/* Set the max level for the log */
@@ -143,7 +139,6 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WTF) + 1, char);
 		if (!lvl_pre) {
 			(!len) ? (NULL) : free(fmt_ptr);
-			errno = EIO;
 			return -1;
 		}
 
@@ -153,7 +148,6 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 		lvl_pre = PURPL_CALLOC(strlen(PRE_FATAL) + 1, char);
 		if (!lvl_pre) {
 			(!len) ? (NULL) : free(fmt_ptr);
-			errno = EIO;
 			return -1;
 		}
 
@@ -163,7 +157,6 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 		lvl_pre = PURPL_CALLOC(strlen(PRE_ERROR) + 1, char);
 		if (!lvl_pre) {
 			(!len) ? (NULL) : free(fmt_ptr);
-			errno = EIO;
 			return -1;
 		}
 
@@ -173,7 +166,6 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WARNING) + 1, char);
 		if (!lvl_pre) {
 			(!len) ? (NULL) : free(fmt_ptr);
-			errno = EIO;
 			return -1;
 		}
 
@@ -183,7 +175,6 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 		lvl_pre = PURPL_CALLOC(strlen(PRE_INFO) + 1, char);
 		if (!lvl_pre) {
 			(!len) ? (NULL) : free(fmt_ptr);
-			errno = EIO;
 			return -1;
 		}
 
@@ -193,7 +184,6 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 		lvl_pre = PURPL_CALLOC(strlen(PRE_DEBUG) + 1, char);
 		if (!lvl_pre) {
 			(!len) ? (NULL) : free(fmt_ptr);
-			errno = EIO;
 			return -1;
 		}
 
@@ -217,7 +207,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	/* Just in case */
 	fflush(fp);
 
-	/* Free msg too */
+	/* Free everything else */
 	free(fmt_ptr);
 	free(lvl_pre);
 
@@ -256,7 +246,7 @@ void PURPL_EXPORT purpl_close_log(struct purpl_logger *logger, u8 index)
 		return;
 	}
 
-	/* Close the log and clear its information */
+	/* Close the file and clear its information */
 	fclose(logger->logs[index]);
 	logger->nlogs--;
 	logger->max_level[index] = 0;

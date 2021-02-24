@@ -5,6 +5,9 @@
 int main(int argc, char *argv[])
 {
 	ubyte log_index;
+	FILE *fp;
+	char *file;
+	size_t file_len;
 	struct purpl_logger *logger;
 
 	/* Unused parameters */
@@ -20,6 +23,9 @@ int main(int argc, char *argv[])
 
 	/* Write a message */
 	purpl_write_log(logger, FILENAME, __LINE__, -1, -1, "test");
+
+	/* Map a file */
+	fp = fopen(, )
 
 	/* Close the logger */
 	purpl_end_logger(logger, true);

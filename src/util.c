@@ -149,7 +149,14 @@ struct purpl_mapping *PURPL_EXPORT purpl_map_file(u8 protection, FILE *fp)
 	/* Create a "view" of the mapping */
 	mapping->data = MapViewOfFile(mapping->handle, prot, 0, 0, len);
 	if (!mapping->data) {
-		errno = ENOMEM;
+		/* 
+		 * Microsoft brought this upon us by having
+		 *  their own weird-ass system for error codes
+		 */
+		if (GetLastError() == ERROR_ACCESS_DENIED)
+			errno = EPERM;
+		else
+			errno = ENOMEM;
 		return NULL;
 	}
 #else /*
@@ -162,29 +169,36 @@ struct purpl_mapping *PURPL_EXPORT purpl_map_file(u8 protection, FILE *fp)
 		prot = PROT_READ;
 		break;
 	case 1:
-		prot = PROT_WRITE;
+		prot = PROT_READ | PROT_WRITE;
 		break;
 	case 2:
-		prot = PROT_EXEC;
+		prot = PROT_READ | PROT_WRITE | PROT_EXEC;
 		break;
 	}
 
 	/* Map the file */
+	PURPL_RESET_ERRNO;
 	PURPL_RETRY_INTR(mapping->data =
 				 mmap(NULL, mapping->len, prot,
 				      (prot - 1) ? MAP_SHARED : MAP_PRIVATE,
 				      fd2, 0));
 
-	/* On a filesystem mounted with noexec, try mapping as writable */
-	if (!mapping->data && errno == EPERM && prot == PROT_EXEC)
+	/* If a permission error arises, downgrade requested access */
+	if (!mapping->data && errno == EPERM) {
+		prot--;
+		PURPL_RESET_ERRNO;
 		PURPL_RETRY_INTR(mapping->data = mmap(NULL, mapping->len,
 						      prot - 1, MAP_SHARED, fd2,
 						      0));
+	}
 
-	if (!mapping->data) {
+	if (!mapping->data)
 		/* errno is already initialized to something valid */
 		return NULL;
-	}
+	
+	/* Do some final error checking */
+	if (errno)
+		return NULL;
 #endif /* _WIN32 */
 
 	/* Close fd2 */

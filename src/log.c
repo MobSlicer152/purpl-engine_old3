@@ -29,7 +29,7 @@ purpl_init_logger(u8 *first_index_ret, s8 default_level,
 	va_end(args);
 
 	/* Allocate the file stream pointers */
-	logger->logs = PURPL_CALLOC(64, FILE *);
+	logger->logs = PURPL_CALLOC(PURPL_MAX_LOGS, FILE *);
 
 	/* Open the first log and fill out the structure */
 	logger->default_index = purpl_open_log(logger, first_max_level, first) &
@@ -289,9 +289,9 @@ void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger, _Bool write_good
 				strcat(goodbye, "day.");
 			else if (now->tm_hour < 12)
 				strcat(goodbye, "morning.");
-			else if (now->tm_hour >= 12 && now->tm_hour < 16)
+			else if (now->tm_hour >= 12 && now->tm_hour < 17)
 				strcat(goodbye, "afternoon.");
-			else if (now->tm_hour >= 16 && now->tm_hour < 18)
+			else if (now->tm_hour >= 17 && now->tm_hour < 18)
 				strcat(goodbye, "evening.");
 			else if (now->tm_hour >= 18)
 				strcat(goodbye, "night.");

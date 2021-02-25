@@ -73,18 +73,23 @@
 #define PURPL_RESET_ERRNO (errno = 0)
 
 /**
- * @brief The base name and extension of the current file
+ * @brief Get the base name of `path`
  */
 #if _WIN32 && _MSC_VER /*
 	          * MSVC is the only (supported) Windows compiler that
 		  * uses backslashes in __FILE__
 		  */
-#define FILENAME \
-	(strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#define GET_FILENAME(path) \
+	(strrchr(path, '\\') ? strrchr(path, '\\') + 1 : path)
 #else
-#define FILENAME \
-	(strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define GET_FILENAME(path) \
+	(strrchr(path, '/') ? strrchr(path, '/') + 1 : path)
 #endif
+
+/**
+ * @brief The base name and extension of the current file
+ */
+#define FILENAME GET_FILENAME(__FILE__)
 
 /**
  * @brief Exports a function
@@ -107,13 +112,18 @@
 
 #ifdef PROBABLY_POSIX
 /**
- * @brief glibc's macro for retrying interrupted syscalls  
+ * @brief glibc's macro for retrying interrupted syscalls (because some people
+ *  don't have glibc or something, and this macro is useful)
  */
-#define PURPL_RETRY_INTR(expression)                  \
-	(__extension__({                              \
-		long int res;                         \
-		do                                    \
-			res = false
+#define PURPL_RETRY_INTR(expression)                       \
+	(__extension__({                                   \
+		long int __result;                         \
+		do                                         \
+			__result = (long int)(expression); \
+		while (__result == -1L && errno == EINTR); \
+		__result;                                  \
+	}))
+#endif
 #define PURPL_READ "rb" /**< Read only */
 #define PURPL_WRITE "rb+" /**< Read _and_ write */
 #define PURPL_OVERWRITE "wb+" /**< Overwrite (read and write, but truncated) */
@@ -127,6 +137,7 @@
 struct purpl_mapping {
 	void *data; /**< The actual mapped file */
 	size_t len; /**< The length of the file */
+	u8 prot; /**< The protection of the pages. See `purpl_map_file` for more */
 #ifdef _WIN32
 	HANDLE handle; /**< Ewwy Win32 handle to the "mapping object" */
 #endif
@@ -171,7 +182,7 @@ extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
  *  appropriate system function
  * 
  * @param protection is 0, 1, or 2 to indicate read-only, writable, or
- *  executable (substituted with writable in the event of a permission error).
+ *  executable.
  * @param fp is the file to map
  * 
  * @return Returns either information about the mapped file (use the `data` member)
@@ -181,12 +192,12 @@ extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
  *  significantly more efficient than reading the file into memory. Seeing as
  *  this process requires either a system call or a Win32 function, it's easier
  *  to use this function instead because it's consistent (or at least tries to
- *  be). Note that len_ret is only needed on POSIX systems (still pass it on
- *  Windows). DO NOT FREE THE POINTER RETURNED, THAT'S NOT HOW THAT WORKS.
+ *  be). DO NOT FREE THE POINTER RETURNED, THAT'S NOT HOW THAT WORKS.
  *  Use `purpl_unmap_file` with THE ORIGINAL ADDRESS RETURNED FROM THIS
  *  FUNCTION OR BAD SHIT (!) WILL HAPPEN. On Linux, you'll get a segfault if
  *  you try writing to read-only mappings,  and as far as I remember, Windows
- *  will get mad too.
+ *  will get mad too. Check the returned structure's `prot` member for the
+ *  actual protection of the pages.
  */
 extern struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp);
 
@@ -210,7 +221,7 @@ extern void purpl_unmap_file(struct purpl_mapping *info);
  * @param map is whether or not to map the file into memory instead of reading
  *  it into a buffer (if this is true _AND_ `info` isn't `NULL`, don't free the
  *  buffer, use `purpl_unmap_file`). Also, if this is true, writing to the
- *  buffer _is_ safe
+ *  buffer _is_ safe, but _only_ if `info->prot` is greater than 0
  * @param fp is the file stream to read from/map
  *
  * @return Returns the contents of the file (either a buffer or a pointer to

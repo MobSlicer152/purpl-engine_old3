@@ -5,12 +5,9 @@
 int main(int argc, char *argv[])
 {
 	ubyte log_index;
-	FILE *fp;
-	char *a_file;
-	size_t len;
 	int err; /* Save errno before logging an error message */
-	struct purpl_mapping *map;
 	struct purpl_logger *logger;
+	struct purpl_asset *test;
 
 	/* Unused parameters */
 	NOPE(argc);
@@ -27,36 +24,23 @@ int main(int argc, char *argv[])
 	/* Log a message */
 	purpl_write_log(logger, FILENAME, __LINE__, -1, -1, "a message");
 
-	/* Open a file */
-	fp = fopen("a file", PURPL_READ);
-	if (!fp) {
+	/*
+	 * Load an asset (this is an example, replace it
+	 *  with something else to test it)
+	 */
+	test = purpl_load_asset_from_file(".local/etc:/usr/local/etc:/etc",
+					  true, "hosts");
+	if (!test) {
 		err = errno;
 		purpl_write_log(logger, FILENAME, __LINE__, -1, FATAL,
-				"Error opening file: %s", strerror(errno));
-		return err;
-	}
-
-	/* Read a file (use the standard library for really big files) */
-	a_file = purpl_read_file(&len, &map, true, "a file");
-	if (!a_file) {
-		err = errno;
-		purpl_write_log(logger, FILENAME, __LINE__, -1, FATAL,
-				"Error %s file: %s\n",
-				(map == NULL) ? "reading" : "mapping",
-				strerror(errno));
+				"Failed to load asset: %s", strerror(err));
 		purpl_end_logger(logger, true);
-		return err;
+		return -err;
 	}
 
-	/* Write a file's contents to the log */
-	purpl_write_log(logger, FILENAME, __LINE__, -1, INFO,
-			"Contents of file \"a file\":\n%s", a_file);
-
-	/* Remove the file from memory */
-	if (map != NULL)
-		purpl_unmap_file(map);
-	else
-		free(a_file);
+	/* Write the file's contents into the log */
+	purpl_write_log(logger, FILENAME, __LINE__, -1, -1,
+			"Contents of \"%s\":\n%s", test->name, test->data);
 
 	/* Close the logger */
 	purpl_end_logger(logger, true);

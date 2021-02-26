@@ -1,8 +1,10 @@
 #include "purpl/log.h"
 
-struct purpl_logger *PURPL_EXPORT
-purpl_init_logger(u8 *first_index_ret, s8 default_level,
-		  s8 first_max_level, const char *first_log_path, ...)
+struct purpl_logger *PURPL_EXPORT purpl_init_logger(u8 *first_index_ret,
+						    s8 default_level,
+						    s8 first_max_level,
+						    const char *first_log_path,
+						    ...)
 {
 	struct purpl_logger *logger;
 	char *first;
@@ -106,15 +108,18 @@ int PURPL_EXPORT purpl_open_log(struct purpl_logger *logger, s8 max_level,
 #define PRE_DEBUG "[debug] "
 
 size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
-				    const char *file, const int line,
-				    s8 index, s8 level, const char *fmt,
-				    ...)
+				    const char *file, const int line, s8 index,
+				    s8 level, const char *fmt, ...)
 {
+	time_t rawtime;
+	struct tm *now;
 	char *fmt_ptr;
 	char *lvl_pre;
+	char *msg;
 	u8 idx;
 	u8 lvl;
-	size_t len;
+	size_t fmt_len;
+	size_t msg_len;
 	size_t written;
 	FILE *fp;
 	va_list args;
@@ -129,7 +134,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 
 	/* Format fmt */
 	va_start(args, fmt);
-	fmt_ptr = purpl_fmt_text_va(&len, fmt, args);
+	fmt_ptr = purpl_fmt_text_va(&fmt_len, fmt, args);
 	va_end(args);
 
 	/* Evaluate what level to use */
@@ -138,7 +143,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case WTF:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WTF) + 1, char);
 		if (!lvl_pre) {
-			(!len) ? (NULL) : free(fmt_ptr);
+			(!fmt_len) ? (NULL) : free(fmt_ptr);
 			return -1;
 		}
 
@@ -147,7 +152,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case FATAL:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_FATAL) + 1, char);
 		if (!lvl_pre) {
-			(!len) ? (NULL) : free(fmt_ptr);
+			(!fmt_len) ? (NULL) : free(fmt_ptr);
 			return -1;
 		}
 
@@ -156,7 +161,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case ERROR:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_ERROR) + 1, char);
 		if (!lvl_pre) {
-			(!len) ? (NULL) : free(fmt_ptr);
+			(!fmt_len) ? (NULL) : free(fmt_ptr);
 			return -1;
 		}
 
@@ -165,7 +170,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case WARNING:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_WARNING) + 1, char);
 		if (!lvl_pre) {
-			(!len) ? (NULL) : free(fmt_ptr);
+			(!fmt_len) ? (NULL) : free(fmt_ptr);
 			return -1;
 		}
 
@@ -174,7 +179,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case INFO:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_INFO) + 1, char);
 		if (!lvl_pre) {
-			(!len) ? (NULL) : free(fmt_ptr);
+			(!fmt_len) ? (NULL) : free(fmt_ptr);
 			return -1;
 		}
 
@@ -183,7 +188,7 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	case DEBUG:
 		lvl_pre = PURPL_CALLOC(strlen(PRE_DEBUG) + 1, char);
 		if (!lvl_pre) {
-			(!len) ? (NULL) : free(fmt_ptr);
+			(!fmt_len) ? (NULL) : free(fmt_ptr);
 			return -1;
 		}
 
@@ -191,14 +196,29 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 		break;
 	}
 
+	/* Get the time */
+	time(&rawtime);
+	now = localtime(&rawtime);
+
 	/* Figure out our index */
 	idx = (index < 0) ? logger->default_index : index;
 	fp = logger->logs[idx];
 
+	/* Format the message */
+	msg = purpl_fmt_text(&msg_len, "%s%s:%d %d:%d:%d %d/%d/%d: %s\n",
+			     lvl_pre, file, line, now->tm_hour, now->tm_min,
+			     now->tm_sec, now->tm_mday, now->tm_mon + 1,
+			     now->tm_year - 70, fmt_ptr);
+	if (!msg) {
+		(fmt_len) ? (NULL) : free(fmt_ptr);
+		free(lvl_pre);
+		return -1;
+	}
+
 	/* Write the message */
-	written = fprintf(fp, "%s%s:%d: %s\n", lvl_pre, file, line, fmt_ptr);
+	written = fwrite(msg, sizeof(char), msg_len - 1, fp);
 	if (!written) {
-		free(fmt_ptr);
+		(fmt_len) ? (NULL) : free(fmt_ptr);
 		free(lvl_pre);
 		return -1;
 	}
@@ -207,7 +227,8 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	fflush(fp);
 
 	/* Free everything else */
-	free(fmt_ptr);
+	(msg_len) ? (NULL) : free(msg);
+	(fmt_len) ? (NULL) : free(fmt_ptr);
 	free(lvl_pre);
 
 	PURPL_RESET_ERRNO;
@@ -215,7 +236,8 @@ size_t PURPL_EXPORT purpl_write_log(struct purpl_logger *logger,
 	return written;
 }
 
-extern s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level)
+s8 PURPL_EXPORT purpl_set_max_level(struct purpl_logger *logger, u8 index,
+				    u8 level)
 {
 	u8 idx = index & 0xFFFFFF;
 
@@ -253,7 +275,8 @@ void PURPL_EXPORT purpl_close_log(struct purpl_logger *logger, u8 index)
 	PURPL_RESET_ERRNO;
 }
 
-void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger, _Bool write_goodbye)
+void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger,
+				   _Bool write_goodbye)
 {
 	uint i;
 
@@ -274,7 +297,8 @@ void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger, _Bool write_good
 			struct tm *now;
 
 			/* Copy in the first part of the message */
-			strcpy(goodbye, "This logger instance is terminating. Have a ");
+			strcpy(goodbye,
+			       "This logger instance is terminating. Have a ");
 
 			/* Now choose an adjective */
 			if (rand() % 10 < 5)
@@ -296,8 +320,9 @@ void PURPL_EXPORT purpl_end_logger(struct purpl_logger *logger, _Bool write_good
 			else if (now->tm_hour >= 18)
 				strcat(goodbye, "night.");
 
-			purpl_write_log(logger, FILENAME, __LINE__, i, logger->max_level[i], "%s", goodbye);
-		}		
+			purpl_write_log(logger, FILENAME, __LINE__, i,
+					logger->max_level[i], "%s", goodbye);
+		}
 
 		/* Close the log */
 		purpl_close_log(logger, i);

@@ -31,14 +31,14 @@ if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	include_directories(${OPENGL_INCLUDE_DIR})
 endif()
 
-include_directories(include deps/cglm/include deps/glew/include deps/json-c deps/stb)
+include_directories(include deps/cglm/include deps/glew/include deps/json-c deps/libarchive/libarchive deps/stb)
 
 add_subdirectory(deps)
 add_subdirectory(include)
 add_subdirectory(src)
 
 add_library(purpl SHARED ${PURPL_HEADERS} ${PURPL_SOURCES})
-target_link_libraries(purpl cglm glew json-c)
+target_link_libraries(purpl cglm glew json-c archive)
 
 if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	target_link_libraries(purpl OpenGL::GL)

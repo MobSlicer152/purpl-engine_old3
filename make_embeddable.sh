@@ -21,8 +21,14 @@ if [ ${platform} == "CYGWIN*" ] || [ ${platform} == "MINGW*" ]; then
 else
 	fmt="elf64-x86-64"
 fi
-echo "Using output format ${fmt} because script is running under ${platform}"
+echo "Using output format ${fmt} because script is running under ${platform}..."
 
 # Objcopy
-echo "Objcopying archive ${1} into ${output}"
+echo "Objcopying archive ${1} into ${output}..."
+rm ${output}
 objcopy --input binary --output $fmt --binary-architecture i386:x86-64 --rename-section .data=.rodata,contents,alloc,load,readonly,data ${1} ${output}
+if ! [ -z $? ]; then
+	exit
+fi
+
+echo "Done!"

@@ -16,6 +16,9 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include <archive.h>
+#include <archive_entry.h>
+
 #include "util.h"
 
 /**
@@ -35,6 +38,51 @@ struct purpl_asset {
 };
 
 /**
+ * @brief A structure to hold information about an embedded archive.
+ * 
+ * To use this to load assets, use the `ar` member and pass it to
+ *  `purpl_load_asset_from_archive`.
+ */
+struct purpl_embed {
+	char *start;
+	char *end;
+	size_t size;
+	struct archive *ar;
+};
+
+/**
+ * @brief Load the information about an embedded archive
+ *  into a `purpl_embed` structure
+ * 
+ * @param sym_start The start of the data (created by objcopy)
+ * @param sym_end The end of the data (also created by objcopy)
+ * 
+ * @return Returns a usable `purpl_embed` structure
+ * 
+ * Embedding an archive in your executable requires you to have the GNU
+ *  binutils available, and to use the `make_embedabble.sh` script (produces
+ *  an object file). Once you do that, you must declare two variables that
+ *  follow the pattern of `extern char _binary_name_extension_start[]`
+ *  (also declare one for the end using the same pattern). objcopy also gives
+ *  you an `_size` symbol, but I have found it to be unreliable, so
+ *  `_end - _start` or `embed->size` should be used instead.
+ */
+extern struct purpl_embed *purpl_load_embed(const char *sym_start,
+					    const char *sym_end);
+
+/**
+ * @brief Loads an asset from an archive
+ * 
+ * @param ar is the libarchive object to load from (for embedded, use `embed->ar`)
+ * @param path is the path within the archive to the asset
+ * 
+ * @return Returns NULL or a `purpl_asset` structure. Sets `errno` to ENOENT if
+ *  the file is nonexistent or empty and EISDIR if it's a directory.
+ */
+extern struct purpl_asset *purpl_load_asset_from_archive(struct archive *ar,
+							 const char *path, ...);
+
+/**
  * @brief Load an asset from a file, searching `search_paths`
  *
  * @param search_paths is the null-terminated, colon-separated list of
@@ -47,8 +95,14 @@ struct purpl_asset {
  * @return Returns either NULL or a usable `purpl_asset` structure.
  */
 extern struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
-						      bool map, const char *name, ...);
+						      bool map,
+						      const char *name, ...);
 
+/**
+ * @brief Free the information associated with an asset
+ * 
+ * @param asset is the asset to free
+ */
 extern void purpl_free_asset(struct purpl_asset *asset);
 
 #endif /* !PURPL_ASSET_H */

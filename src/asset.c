@@ -1,5 +1,139 @@
 #include "purpl/asset.h"
 
+struct purpl_embed *PURPL_EXPORT purpl_load_embed(const char *sym_start,
+						  const char *sym_end)
+{
+	struct purpl_embed *embed;
+	int err;
+
+	PURPL_RESET_ERRNO;
+
+	/* Validate arguments */
+	if (!sym_start || !sym_start || !(sym_end - sym_start)) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	/* Allocate the structure */
+	embed = PURPL_CALLOC(1, struct purpl_embed);
+	if (!embed)
+		return NULL;
+
+	/* Store our archive start, end, and size */
+	embed->start = sym_start;
+	embed->end = sym_end;
+	embed->size = embed->end - embed->start;
+
+	/* Start up libarchive */
+	embed->ar = archive_read_new();
+	if (!embed->ar)
+		return NULL;
+
+	/* We're not dealing with raw or empty archives */
+	archive_read_support_compression_all(embed->ar);
+	archive_read_support_format_all(embed->ar);
+
+	/* Load in the archive */
+	err = archive_read_open_memory(embed->ar, embed->start, embed->size);
+	if (err) {
+		errno = ENOMEM; /*
+				 * Some interpretation will be necessary in
+				 * libarchive-related code
+				 */
+		return NULL;
+	}
+
+	PURPL_RESET_ERRNO;
+
+	/* Return the embed details */
+	return embed;
+}
+
+struct purpl_asset *PURPL_EXPORT
+purpl_load_asset_from_archive(struct archive *ar, const char *path, ...)
+{
+	struct purpl_asset *asset;
+	struct archive_entry *ent;
+	int err;
+	va_list args;
+	char *path_fmt;
+	size_t path_len;
+
+	PURPL_RESET_ERRNO;
+
+	/* Check args */
+	if (!ar || !path) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	/* Format the path to the file */
+	va_start(args, path);
+	path_fmt = purpl_fmt_text_va(&path_len, path, args);
+	va_end(args);
+
+	/* 
+	 * Allocate an archive (0 is false and calloc zeroes the 
+	 * memory, so no worries about asset->mapped)
+	 */
+	asset = PURPL_CALLOC(1, struct purpl_asset);
+	if (!asset)
+		return NULL;
+
+	/* Iterate through archive entries until we find the right file */
+	while (1) {
+		/* Keep reading the next header */
+		err = archive_read_next_header(ar, &ent);
+		if (err == ARCHIVE_EOF) {
+			errno = ENOENT;
+			return NULL;
+		}
+
+		/* First, check for some other error */
+		if (err != ARCHIVE_OK)
+			continue;
+
+		/* Next, check for a match */
+		if (strcmp(path_fmt, archive_entry_pathname(ent)) != 0)
+			continue;
+
+		/* Now that we have a match, check if it's a directory */
+		if (archive_entry_filetype(ent) == AE_IFDIR) {
+			errno = EISDIR;
+			return NULL;
+		}
+
+		/* At this point, we can read the file, so get its length */
+		asset->size = archive_entry_size(ent);
+		if (!asset->size) {
+			errno = ENOENT; /* This is close enough for our purposes */
+			return NULL;
+		}
+
+		/* Allocate a buffer for the file */
+		asset->data = PURPL_CALLOC(asset->size, char);
+		if (!asset->data)
+			return NULL;
+
+		/* And at last read it */
+		archive_read_data(ar, asset->data, asset->size);
+
+		/* Fill in the name of the asset */
+		asset->name = PURPL_CALLOC(strlen(archive_entry_pathname(ent)), char);
+		if (!asset->name)
+			return NULL;
+		strcpy(asset->name, archive_entry_pathname(ent));
+
+		/* If we're here, the loop can end */
+		break;
+	}
+
+	PURPL_RESET_ERRNO;
+	
+	/* Return the asset */
+	return asset;
+}
+
 struct purpl_asset *PURPL_EXPORT purpl_load_asset_from_file(
 	const char *search_paths, bool map, const char *name, ...)
 {
@@ -117,6 +251,24 @@ struct purpl_asset *PURPL_EXPORT purpl_load_asset_from_file(
 	/* Close the file */
 	fclose(fp);
 
+	PURPL_RESET_ERRNO;
+
 	/* Return the asset */
 	return asset;
+}
+
+void PURPL_EXPORT purpl_free_asset(struct purpl_asset *asset)
+{
+	PURPL_RESET_ERRNO;
+
+	/* If the file is mapped, deal with that */
+	if (asset->mapped)
+		purpl_unmap_file(asset->mapping);
+	else /* Otherwise free the data */
+		free(asset->data);
+
+	/* Free the rest of the structure */
+	free(asset);
+
+	PURPL_RESET_ERRNO;
 }

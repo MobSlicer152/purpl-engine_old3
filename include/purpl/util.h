@@ -32,6 +32,10 @@
 
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Defined when not Windows, to be expanded  
  */
@@ -79,17 +83,17 @@
 	          * MSVC is the only (supported) Windows compiler that
 		  * uses backslashes in __FILE__
 		  */
-#define GET_FILENAME(path) \
+#define PURPL_GET_FILENAME(path) \
 	(strrchr(path, '\\') ? strrchr(path, '\\') + 1 : path)
 #else
-#define GET_FILENAME(path) \
+#define PURPL_GET_FILENAME(path) \
 	(strrchr(path, '/') ? strrchr(path, '/') + 1 : path)
 #endif
 
 /**
  * @brief The base name and extension of the current file
  */
-#define FILENAME GET_FILENAME(__FILE__)
+#define FILENAME PURPL_GET_FILENAME(__FILE__)
 
 /**
  * @brief Exports a function
@@ -159,7 +163,8 @@ struct purpl_mapping {
  *  large value that should be good enough as a fallback.  Always `free` the buffer,
  *  unless len_ret is -1 and `fmt` can't be freed in that way.
  */
-extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
+extern PURPL_EXPORT char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
+					    va_list args);
 
 /**
  * @brief Formats text as `sprintf` would
@@ -175,7 +180,7 @@ extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
  *  `sprintf`. Always `free` the buffer, unless len_ret is -1 and `fmt`
  *  can't be freed in that way.
  */
-extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
+extern PURPL_EXPORT char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
 
 /**
  * @brief Maps a file into the process's virtual memory using the
@@ -199,7 +204,8 @@ extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
  *  will get mad too. Check the returned structure's `prot` member for the
  *  actual protection of the pages.
  */
-extern struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp);
+extern PURPL_EXPORT struct purpl_mapping *purpl_map_file(u8 protection,
+							 FILE *fp);
 
 /**
  * @brief Unmap a file mapped with `purpl_map_file`.
@@ -210,7 +216,7 @@ extern struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp);
  * This function does no error checking because it's assumed that `info`
  *  will be unused after this (i.e. will be reassigned or something).
  */
-extern void purpl_unmap_file(struct purpl_mapping *info);
+extern PURPL_EXPORT void purpl_unmap_file(struct purpl_mapping *info);
 
 /**
  * @brief Read a file (either map it into memory or read it into a buffer)
@@ -227,7 +233,8 @@ extern void purpl_unmap_file(struct purpl_mapping *info);
  * @return Returns the contents of the file (either a buffer or a pointer to
  *  the pages containing the mapped contents of the file, see `info` and `map`)
  */
-extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **info,
+extern PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
+					     struct purpl_mapping **info,
 				bool map, FILE *fp);
 
 /**
@@ -243,7 +250,12 @@ extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **info,
  * @return Returns the contents of the file (either a buffer or a pointer to
  *  the pages containing the mapped contents of the file, see `info` and `map`)
  */
-extern char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
+extern PURPL_EXPORT char *purpl_read_file(size_t *len_ret,
+					  struct purpl_mapping **info,
 			     bool map, const char *path, ...);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !PURPL_UTIL_H */

@@ -10,11 +10,11 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_EXTENSIONS TRUE)
 
-set(CMAKE_C_FLAGS "-O2 -Wall -DPURPL_USE_${PURPL_GRAPHICS_API}")
+set(CMAKE_C_FLAGS "-O2 -DPURPL_USE_${PURPL_GRAPHICS_API}")
 if (NOT MSVC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra -Wno-discarded-qualifiers")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-discarded-qualifiers")
 else()
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -36,6 +36,7 @@ include_directories(include deps/cglm/include deps/glew/include deps/json-c deps
 add_subdirectory(deps)
 add_subdirectory(include)
 add_subdirectory(src)
+add_subdirectory(tools)
 
 add_library(purpl SHARED ${PURPL_HEADERS} ${PURPL_SOURCES})
 target_link_libraries(purpl cglm glew json-c archive)

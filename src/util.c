@@ -1,7 +1,11 @@
 #define STB_SPRINTF_IMPLEMENTATION
 #include "purpl/util.h"
 
-char *PURPL_EXPORT purpl_fmt_text_va(size_t *len_ret, const char *fmt,
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+PURPL_EXPORT char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
 				     va_list args)
 {
 	size_t len;
@@ -50,7 +54,7 @@ char *PURPL_EXPORT purpl_fmt_text_va(size_t *len_ret, const char *fmt,
 	return buf;
 }
 
-char *PURPL_EXPORT purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
+PURPL_EXPORT char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 {
 	va_list args;
 	char *fmt_ptr;
@@ -72,7 +76,7 @@ char *PURPL_EXPORT purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 	return fmt_ptr;
 }
 
-struct purpl_mapping *PURPL_EXPORT purpl_map_file(u8 protection, FILE *fp)
+PURPL_EXPORT struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 {
 	struct purpl_mapping *mapping;
 	u8 prot;
@@ -107,7 +111,7 @@ struct purpl_mapping *PURPL_EXPORT purpl_map_file(u8 protection, FILE *fp)
 	 */
 	fd = fileno(fp);
 	if (fd < 0) {
-		errno = EBADFD;
+		errno = EBADF;
 		return NULL;
 	}
 
@@ -139,15 +143,15 @@ struct purpl_mapping *PURPL_EXPORT purpl_map_file(u8 protection, FILE *fp)
 
 	/* Create a mapping object, whatever the fuck that's meant to be */
 	mapping->handle = CreateFileMappingA(file, NULL, PAGE_EXECUTE_READWRITE,
-					     0, PURPL_HIGH(len, DWORD),
-					     PURPL_LOW(len, DWORD), NULL);
+					     0, PURPL_HIGH(mapping->len, DWORD),
+					     PURPL_LOW(mapping->len, DWORD), NULL);
 	if (!mapping->handle) {
 		errno = ENOMEM;
 		return NULL;
 	}
 
 	/* Create a "view" of the mapping */
-	mapping->data = MapViewOfFile(mapping->handle, prot, 0, 0, len);
+	mapping->data = MapViewOfFile(mapping->handle, prot, 0, 0, mapping->len);
 	if (!mapping->data) {
 		/* 
 		 * Microsoft brought this upon us by having
@@ -210,7 +214,7 @@ struct purpl_mapping *PURPL_EXPORT purpl_map_file(u8 protection, FILE *fp)
 	return mapping;
 }
 
-void PURPL_EXPORT purpl_unmap_file(struct purpl_mapping *info)
+PURPL_EXPORT void purpl_unmap_file(struct purpl_mapping *info)
 {
 	PURPL_RESET_ERRNO;
 
@@ -236,7 +240,7 @@ void PURPL_EXPORT purpl_unmap_file(struct purpl_mapping *info)
 	PURPL_RESET_ERRNO;
 }
 
-char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret,
+PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
 				      struct purpl_mapping **info, bool map,
 				      FILE *fp)
 {
@@ -314,7 +318,7 @@ char *PURPL_EXPORT purpl_read_file_fp(size_t *len_ret,
 	return file;
 }
 
-char *PURPL_EXPORT purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
+PURPL_EXPORT char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
 				   bool map, const char *path, ...)
 {
 	va_list args;
@@ -343,3 +347,7 @@ char *PURPL_EXPORT purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
 	/* Return read_file_fp */
 	return purpl_read_file_fp(len_ret, info, map, fp);
 }
+
+#ifdef __cplusplus
+}
+#endif

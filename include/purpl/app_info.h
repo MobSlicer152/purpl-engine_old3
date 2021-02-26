@@ -6,8 +6,8 @@
 #include "log.h"
 #include "types.h"
 
-struct purpl_app_info {
+//struct purpl_app_info {
 
-};
+//};
 
 #endif /* !PURPL_APP_INFO_H */

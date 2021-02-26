@@ -21,6 +21,10 @@
 
 #include "util.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief The max number of asset paths that will be processed 
  */
@@ -59,15 +63,10 @@ struct purpl_embed {
  * 
  * @return Returns a usable `purpl_embed` structure
  * 
- * Embedding an archive in your executable requires you to have the GNU
- *  binutils available, and to use the `make_embedabble.sh` script (produces
- *  an object file). Once you do that, you must declare two variables that
- *  follow the pattern of `extern char _binary_name_extension_start[]`
- *  (also declare one for the end using the same pattern). objcopy also gives
- *  you an `_size` symbol, but I have found it to be unreliable, so
- *  `_end - _start` or `embed->size` should be used instead.
+ * Embedding an archive in your executable requires you to use the
+ *  `tools/mkembed` utility that gets built when you build the engine.
  */
-extern struct purpl_embed *purpl_load_embed(const char *sym_start,
+extern PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
 					    const char *sym_end);
 
 /**
@@ -79,7 +78,8 @@ extern struct purpl_embed *purpl_load_embed(const char *sym_start,
  * @return Returns NULL or a `purpl_asset` structure. Sets `errno` to ENOENT if
  *  the file is nonexistent or empty and EISDIR if it's a directory.
  */
-extern struct purpl_asset *purpl_load_asset_from_archive(struct archive *ar,
+extern PURPL_EXPORT struct purpl_asset *
+purpl_load_asset_from_archive(struct archive *ar,
 							 const char *path, ...);
 
 /**
@@ -94,7 +94,8 @@ extern struct purpl_asset *purpl_load_asset_from_archive(struct archive *ar,
  * 
  * @return Returns either NULL or a usable `purpl_asset` structure.
  */
-extern struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
+extern PURPL_EXPORT struct purpl_asset *
+purpl_load_asset_from_file(const char *search_paths,
 						      bool map,
 						      const char *name, ...);
 
@@ -103,6 +104,10 @@ extern struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
  * 
  * @param asset is the asset to free
  */
-extern void purpl_free_asset(struct purpl_asset *asset);
+extern PURPL_EXPORT void purpl_free_asset(struct purpl_asset *asset);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !PURPL_ASSET_H */

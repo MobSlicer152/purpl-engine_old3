@@ -13,6 +13,8 @@ and build like this
 make -C deps/glew/auto
 
 # Currently there's no special flag for graphics because only OpenGL is planned for (Vulkan is a pain)
+# Also, sorry json-c and libarchive add so much configure time, I can't do anything about it if I
+#  want them up-to-date (which I do)
 cmake -S. -Bbuild
 cmake --build build
 build/purpl-demo

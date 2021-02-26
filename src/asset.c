@@ -1,6 +1,10 @@
 #include "purpl/asset.h"
 
-struct purpl_embed *PURPL_EXPORT purpl_load_embed(const char *sym_start,
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
 						  const char *sym_end)
 {
 	struct purpl_embed *embed;
@@ -49,7 +53,7 @@ struct purpl_embed *PURPL_EXPORT purpl_load_embed(const char *sym_start,
 	return embed;
 }
 
-struct purpl_asset *PURPL_EXPORT
+PURPL_EXPORT struct purpl_asset *
 purpl_load_asset_from_archive(struct archive *ar, const char *path, ...)
 {
 	struct purpl_asset *asset;
@@ -134,7 +138,7 @@ purpl_load_asset_from_archive(struct archive *ar, const char *path, ...)
 	return asset;
 }
 
-struct purpl_asset *PURPL_EXPORT purpl_load_asset_from_file(
+PURPL_EXPORT struct purpl_asset *purpl_load_asset_from_file(
 	const char *search_paths, bool map, const char *name, ...)
 {
 	struct purpl_asset *asset;
@@ -211,7 +215,7 @@ struct purpl_asset *PURPL_EXPORT purpl_load_asset_from_file(
 		fp = fopen(full_name, "rb");
 		if (!fp) {
 			/* Free the path and continue if we failed */
-			(full_name_len > 0) ? (NULL) : free(full_name);
+			(full_name_len > 0) ? (void)0 : free(full_name);
 			continue;
 		}
 	}
@@ -221,7 +225,7 @@ struct purpl_asset *PURPL_EXPORT purpl_load_asset_from_file(
 		return NULL;
 
 	/* Free some shit */
-	(name_len > 0) ? (NULL) : free(name_fmt);
+	(name_len > 0) ? (void)0 : free(name_fmt);
 	for (i = 0; i < path_count; i++) {
 		if (paths[i])
 			free(paths[i]);
@@ -231,14 +235,14 @@ struct purpl_asset *PURPL_EXPORT purpl_load_asset_from_file(
 	/* Now we can finally allocate our structure */
 	asset = PURPL_CALLOC(1, struct purpl_asset);
 	if (!asset) {
-		(full_name_len > 0) ? (NULL) : free(full_name);
+		(full_name_len > 0) ? (void)0 : free(full_name);
 		return NULL;
 	}
 
 	/* Fill in the structure */
 	asset->name = PURPL_CALLOC(strlen(full_name), char);
 	if (!asset->name) {
-		(full_name_len > 0) ? (NULL) : free(full_name);
+		(full_name_len > 0) ? (void)0 : free(full_name);
 		return NULL;
 	}
 	strcpy(asset->name, full_name);
@@ -257,7 +261,7 @@ struct purpl_asset *PURPL_EXPORT purpl_load_asset_from_file(
 	return asset;
 }
 
-void PURPL_EXPORT purpl_free_asset(struct purpl_asset *asset)
+PURPL_EXPORT void purpl_free_asset(struct purpl_asset *asset)
 {
 	PURPL_RESET_ERRNO;
 
@@ -272,3 +276,7 @@ void PURPL_EXPORT purpl_free_asset(struct purpl_asset *asset)
 
 	PURPL_RESET_ERRNO;
 }
+
+#ifdef __cplusplus
+}
+#endif

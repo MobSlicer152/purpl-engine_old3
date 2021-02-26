@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	NOPE(argv);
 
 	/* Initialize a logger */
-	logger = purpl_init_logger(&log_index, INFO, DEBUG, "purpl.log");
+	logger = purpl_init_logger(&log_index, PURPL_INFO, PURPL_DEBUG, "purpl.log");
 	if (!logger) {
 		fprintf(stderr, "Error opening log file: %s\n",
 			strerror(errno));
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 				 _binary_embed_bin_end);
 	if (!embed) {
 		err = errno;
-		purpl_write_log(logger, FILENAME, __LINE__, -1, FATAL,
+		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,
 				"Failed to load embedded archive: %s",
 				strerror(err));
 		purpl_end_logger(logger, true);
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	test = purpl_load_asset_from_archive(embed->ar, "ffmpeg.txt");
 	if (!test) {
 		err = errno;
-		purpl_write_log(logger, FILENAME, __LINE__, -1, FATAL,
+		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,
 				"Failed to load asset: %s", strerror(err));
 		archive_read_close(embed->ar);
 		archive_read_free(embed->ar);

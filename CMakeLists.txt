@@ -12,7 +12,7 @@ set(CMAKE_C_EXTENSIONS TRUE)
 
 set(CMAKE_C_FLAGS "-O2 -DPURPL_USE_${PURPL_GRAPHICS_API}")
 if (NOT MSVC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-discarded-qualifiers")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-discarded-qualifiers -Wno-deprecated-declarations") # It's 2 warnings disabled out of tons of other warnings, chill
 else()
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
 endif()

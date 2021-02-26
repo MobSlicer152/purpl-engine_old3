@@ -16,7 +16,7 @@ make -C deps/glew/auto
 # Also, sorry json-c and libarchive add so much configure time, I can't do anything about it if I
 #  want them up-to-date (which I do)
 cmake -S. -Bbuild
-cmake --build build
+cmake --build build # If you used the Makefile or Ninja generator, add on "-j`nproc`"
 build/purpl-demo
 ```
 

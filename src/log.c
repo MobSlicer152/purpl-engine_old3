@@ -198,6 +198,15 @@ PURPL_EXPORT size_t purpl_write_log(struct purpl_logger *logger,
 
 		strcpy(lvl_pre, PRE_DEBUG);
 		break;
+	default:
+		lvl_pre = PURPL_CALLOC(strlen(PRE_WTF) + 1, char);
+		if (!lvl_pre) {
+			(!fmt_len) ? (void)0 : free(fmt_ptr);
+			return -1;
+		}
+
+		strcpy(lvl_pre, PRE_WTF);
+		break;
 	}
 
 	/* Get the time */

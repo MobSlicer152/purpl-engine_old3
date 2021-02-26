@@ -308,7 +308,7 @@ PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
 		len = fseek(fp, 0, fpos);
 
 		/* Ensure info is NULL */
-		memset(info, 0, sizeof(void *));
+		info = NULL;
 	}
 
 	PURPL_RESET_ERRNO;
@@ -327,7 +327,7 @@ PURPL_EXPORT char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
 	FILE *fp;
 
 	/* Check args */
-	if (!len_ret || !info || !path) {
+	if (!len_ret || !path || (map && !info)) {
 		errno = EINVAL;
 		return NULL;
 	}

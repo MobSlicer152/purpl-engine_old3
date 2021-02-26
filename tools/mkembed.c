@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 		output_name = argv[3];
 	} else {
 		/* Allocate a buffer */
-		output_name = PURPL_CALLOC(strlen("embed.c"), char);
+		output_name = PURPL_CALLOC(strlen("embed.c") + 1, char);
 		if (!output_name) {
 			fprintf(stderr,
 				"Error: failed to allocate buffer: %s\n",
@@ -48,36 +48,16 @@ int main(int argc, char *argv[])
 	}
 
 	/* Use my handy function to read the input file */
+	printf("Using file %s\n", input_name);
 	input = purpl_read_file(&input_len, NULL, false, "%s", input_name);
-	if (input) {
+	if (!input) {
 		fprintf(stderr, "Error: failed to read file: %s\n",
 			strerror(errno));
 		return errno;
 	}
 
-	/* Open the output file now */
-	fp = fopen(output_name, "rb");
-	if (!fp) {
-		fprintf(stderr, "Error: failed to open file: %s\n",
-			strerror(errno));
-		return errno;
-	}
-
-	/* Check if it's got anything in it */
-	fseek(fp, 0, SEEK_END);
-	if (ftell(fp)) {
-		printf("File not empty. Shall I overwrite it? [n]: ");
-		i = getc(stdin);
-		if (i == 'y' || i == 'Y') {
-			printf("\nOverwriting file.\n");
-		} else {
-			printf("\nNot overwriting file.\n");
-			return ECANCELED;
-		}
-	}
-
-	/* Reopen the file and truncate it */
-	fp = freopen(output_name, "wb", fp);
+	/* Open the output file */
+	fp = fopen(output_name, "wb");
 	if (!fp) {
 		fprintf(stderr, "Error: failed to truncate file: %s\n",
 			strerror(errno));
@@ -85,6 +65,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Write the start of the array */
+	printf("Writing data to %s\n", output_name);
 	i = fprintf(fp, "const unsigned char %s_start[] = {\n", sym_base);
 	if (!i) {
 		fprintf(stderr, "Error: couldn't write to file: %s\n",
@@ -96,7 +77,7 @@ int main(int argc, char *argv[])
 	j = 0;
 	for (i = 0; i < input_len; i++) {
 		errno = 0;
-		j += fprintf(fp, "0x%X,", input[i]);
+		j += fprintf(fp, "0x%2.0X,", input[i]);
 
 		/* Check for an error */
 		if (errno) {
@@ -137,5 +118,5 @@ void usage(const char *prog)
 {
 	printf("Usage: %s <binary file> <symbols basename> [<output>]\n",
 	       PURPL_GET_FILENAME(prog));
-	exit(-EINVAL);
+	exit(EINVAL);
 }

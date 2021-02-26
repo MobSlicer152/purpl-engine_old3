@@ -67,7 +67,7 @@ struct purpl_embed {
  *  `tools/mkembed` utility that gets built when you build the engine.
  */
 extern PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
-					    const char *sym_end);
+							 const char *sym_end);
 
 /**
  * @brief Loads an asset from an archive
@@ -79,8 +79,7 @@ extern PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
  *  the file is nonexistent or empty and EISDIR if it's a directory.
  */
 extern PURPL_EXPORT struct purpl_asset *
-purpl_load_asset_from_archive(struct archive *ar,
-							 const char *path, ...);
+purpl_load_asset_from_archive(struct archive *ar, const char *path, ...);
 
 /**
  * @brief Load an asset from a file, searching `search_paths`
@@ -95,9 +94,8 @@ purpl_load_asset_from_archive(struct archive *ar,
  * @return Returns either NULL or a usable `purpl_asset` structure.
  */
 extern PURPL_EXPORT struct purpl_asset *
-purpl_load_asset_from_file(const char *search_paths,
-						      bool map,
-						      const char *name, ...);
+purpl_load_asset_from_file(const char *search_paths, bool map, const char *name,
+			   ...);
 
 /**
  * @brief Free the information associated with an asset

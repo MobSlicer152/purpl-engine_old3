@@ -51,6 +51,4 @@ endif()
 
 if (${PURPL_BUILD_DEMO})
     add_subdirectory(demo)
-    add_executable(purpl-demo ${PURPL_DEMO_HEADERS} ${PURPL_DEMO_SOURCES})
-    target_link_libraries(purpl-demo purpl)
 endif()

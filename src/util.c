@@ -305,7 +305,7 @@ PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
 		file[len] = 0;
 
 		/* Put fp back to where it was */
-		len = fseek(fp, 0, fpos);
+		fseek(fp, 0, fpos);
 
 		/* Ensure info is NULL */
 		info = NULL;

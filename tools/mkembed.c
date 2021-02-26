@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 {
 	size_t i;
 	size_t j;
+	size_t k;
 	char *sym_base;
 	char *input;
 	size_t input_len;
@@ -48,13 +49,13 @@ int main(int argc, char *argv[])
 	}
 
 	/* Use my handy function to read the input file */
-	printf("Using file %s\n", input_name);
 	input = purpl_read_file(&input_len, NULL, false, "%s", input_name);
 	if (!input) {
 		fprintf(stderr, "Error: failed to read file: %s\n",
 			strerror(errno));
 		return errno;
 	}
+	printf("Using input file \"%s\" (%zu bytes)\n", input_name, input_len);
 
 	/* Open the output file */
 	fp = fopen(output_name, "wb");
@@ -65,8 +66,8 @@ int main(int argc, char *argv[])
 	}
 
 	/* Write the start of the array */
-	printf("Writing data to %s\n", output_name);
-	i = fprintf(fp, "const unsigned char %s_start[] = {\n", sym_base);
+	printf("Writing data to \"%s\"...\n", output_name);
+	i = fprintf(fp, "const unsigned char %s_start[] = {\n\t", sym_base);
 	if (!i) {
 		fprintf(stderr, "Error: couldn't write to file: %s\n",
 			strerror(errno));
@@ -75,9 +76,14 @@ int main(int argc, char *argv[])
 
 	/* Now write the individual bytes */
 	j = 0;
+	k = i;
 	for (i = 0; i < input_len; i++) {
 		errno = 0;
-		j += fprintf(fp, "0x%2.0X,", input[i]);
+		j += fprintf(fp, "0x%0X", input[i] & 0xFF);
+		if (i < input_len - 1)
+			j += fprintf(fp, ", ");
+		else
+			fprintf(fp, "\n");
 
 		/* Check for an error */
 		if (errno) {
@@ -86,11 +92,14 @@ int main(int argc, char *argv[])
 			return errno;
 		}
 
+		/* Add to the total output written */
+		k += j;
+
 		/* Ensure we don't exceed 80 columns/line :) */
 		if (j >= 70) {
 			j = 0;
 			errno = 0;
-			fprintf(fp, "\n");
+			fprintf(fp, "\n\t");
 
 			/* Check for an error again */
 			if (errno) {
@@ -105,13 +114,27 @@ int main(int argc, char *argv[])
 	/* Terminate the array and write the other symbols */
 	i = fprintf(
 		fp,
-		"\b\b };\nconst unsigned char %s_end[] = %s_start + sizeof(%s_start); const size_t %s_size = %s_end - %s_start;",
-		sym_base, sym_base, sym_base, sym_base, sym_base, sym_base);
+		"};\nconst unsigned char *%s_end =\n\t(unsigned char *)(%s_start +"
+		" sizeof(%s_start));\nconst unsigned long %s_size = sizeof(%s_start);\n",
+		sym_base, sym_base, sym_base, sym_base, sym_base);
 	if (!i) {
 		fprintf(stderr, "Error: couldn't write to file: %s\n",
 			strerror(errno));
 		return errno;
 	}
+
+	/* And now we have our total bytes outputted */
+	k += i;
+
+	/* Close the file and free input */
+	fclose(fp);
+	free(input);
+	
+	/* And we're done */
+	printf("Done! Output file is \"%s\", containing %zu bytes.\n", output_name, k);
+	if (!have_custom_output)
+		free(output_name);
+	return 0;
 }
 
 void usage(const char *prog)

@@ -1,4 +1,4 @@
-# purpl-engine
+# Purpl Engine 3.0
 This is my third attempt at making a game engine. Having learned from those attempts, I think this one will be good. My goal is to at some point have the facilities necessary to create a game. The engine will be written in C, because C is for superior beings.
 
 ## How to build the engine

@@ -4,9 +4,9 @@
 
 #include <purpl/purpl.h>
 
-/* Symbols from objcopied embed object */
-extern char _binary_embed_bin_start[];
-extern char _binary_embed_bin_end[];
+/* Symbols from embedded file */
+extern char embed_bin_start[];
+extern char embed_bin_end[];
 
 int main(int argc, char *argv[])
 {
@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 	purpl_write_log(logger, FILENAME, __LINE__, -1, -1, "a message");
 
 	/* Open up the embedded archive */
-	embed = purpl_load_embed(_binary_embed_bin_start,
-				 _binary_embed_bin_end);
+	embed = purpl_load_embed(embed_bin_start,
+				 embed_bin_end);
 	if (!embed) {
 		err = errno;
 		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,

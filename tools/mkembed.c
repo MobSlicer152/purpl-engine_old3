@@ -79,9 +79,9 @@ int main(int argc, char *argv[])
 	k = i;
 	for (i = 0; i < input_len; i++) {
 		errno = 0;
-		j += fprintf(fp, "0x%0X", input[i] & 0xFF);
+		j += fprintf(fp, "0x%.2X", input[i] & 0xFF);
 		if (i < input_len - 1)
-			j += fprintf(fp, ", ");
+			j += fprintf(fp, ",");
 		else
 			fprintf(fp, "\n");
 
@@ -100,6 +100,17 @@ int main(int argc, char *argv[])
 			j = 0;
 			errno = 0;
 			fprintf(fp, "\n\t");
+
+			/* Check for an error again */
+			if (errno) {
+				fprintf(stderr,
+					"Error: couldn't write to file: %s\n",
+					strerror(errno));
+				return errno;
+			}
+		} else {
+			errno = 0;
+			j += fprintf(fp, " ");
 
 			/* Check for an error again */
 			if (errno) {

@@ -14,7 +14,7 @@ set(CMAKE_C_FLAGS "-O2 -DPURPL_USE_${PURPL_GRAPHICS_API}")
 if (NOT MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-discarded-qualifiers -Wno-deprecated-declarations") # It's 2 warnings disabled out of tons of other warnings, chill
 else()
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W1 -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -38,8 +38,12 @@ add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(tools)
 
-add_library(purpl SHARED ${PURPL_HEADERS} ${PURPL_SOURCES})
-target_link_libraries(purpl cglm glew json-c archive)
+if (${PURPL_BUILD_DEMO})
+    add_subdirectory(demo)
+endif()
+
+add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES})
+target_link_libraries(purpl cglm glew json-c archive_static)
 
 if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	target_link_libraries(purpl OpenGL::GL)
@@ -47,8 +51,4 @@ if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		target_link_libraries(purpl OpenGL::GLX)
 	endif()
-endif()
-
-if (${PURPL_BUILD_DEMO})
-    add_subdirectory(demo)
 endif()

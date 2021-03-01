@@ -67,7 +67,7 @@ struct purpl_logger {
  *  `purpl_close_log` to close an individual log or `purpl_end_logger` to
  *  close all the logs.
  */
-extern PURPL_EXPORT struct purpl_logger *
+extern struct purpl_logger *
 purpl_init_logger(u8 *first_index_ret,
 					      s8 default_level,
 					      s8 first_max_level,
@@ -85,7 +85,7 @@ purpl_init_logger(u8 *first_index_ret,
  * This function opens a new log file for a `purpl_logger` structure
  *  to be written to. Close it with `purpl_logger_close`.
  */
-extern PURPL_EXPORT int purpl_open_log(struct purpl_logger *logger,
+extern int purpl_open_log(struct purpl_logger *logger,
 				       s8 max_level,
 			  const char *path, ...);
 
@@ -105,7 +105,7 @@ extern PURPL_EXPORT int purpl_open_log(struct purpl_logger *logger,
  *  by `index`. Don't be an idiot, use the right format specifiers so that 
  *  your code is less vulnerable.
  */
-extern PURPL_EXPORT size_t purpl_write_log(struct purpl_logger *logger,
+extern size_t purpl_write_log(struct purpl_logger *logger,
 				    const char *file, const int line,
 				    s8 index, s8 level, const char *fmt,
 				    ...);
@@ -118,7 +118,7 @@ extern PURPL_EXPORT size_t purpl_write_log(struct purpl_logger *logger,
  * @param level is the new max level for the specified index
  * @return Returns `level`
  */
-extern PURPL_EXPORT s8 purpl_set_max_level(struct purpl_logger *logger,
+extern s8 purpl_set_max_level(struct purpl_logger *logger,
 					   u8 index, u8 level);
 
 /**
@@ -130,7 +130,7 @@ extern PURPL_EXPORT s8 purpl_set_max_level(struct purpl_logger *logger,
  * Closes a log and clears its information. DO NOT USE THIS TO CLOSE THE
  *  DEFAULT LOG, IT WILL CAUSE ERRORS. Instead, use `purpl_end_logger`.
  */
-extern PURPL_EXPORT void purpl_close_log(struct purpl_logger *logger, u8 index);
+extern void purpl_close_log(struct purpl_logger *logger, u8 index);
 
 /**
  * @brief Cleans up a `purpl_logger` structure
@@ -139,7 +139,7 @@ extern PURPL_EXPORT void purpl_close_log(struct purpl_logger *logger, u8 index);
  * @param write_goodbye is whether or not to log a goodbye message to
  *  each log before termination
  */
-extern PURPL_EXPORT void purpl_end_logger(struct purpl_logger *logger,
+extern void purpl_end_logger(struct purpl_logger *logger,
 					  bool write_goodbye);
 
 #ifdef __cplusplus

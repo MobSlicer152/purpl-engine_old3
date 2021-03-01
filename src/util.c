@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-PURPL_EXPORT char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
+char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
 				     va_list args)
 {
 	size_t len;
@@ -54,7 +54,7 @@ PURPL_EXPORT char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
 	return buf;
 }
 
-PURPL_EXPORT char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
+char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 {
 	va_list args;
 	char *fmt_ptr;
@@ -76,7 +76,7 @@ PURPL_EXPORT char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 	return fmt_ptr;
 }
 
-PURPL_EXPORT struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
+struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 {
 	struct purpl_mapping *mapping;
 	u8 prot;
@@ -214,12 +214,12 @@ PURPL_EXPORT struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	return mapping;
 }
 
-PURPL_EXPORT void purpl_unmap_file(struct purpl_mapping *info)
+void purpl_unmap_file(struct purpl_mapping *mapping)
 {
 	PURPL_RESET_ERRNO;
 
 	/* Check argument */
-	if (!info) {
+	if (!mapping) {
 		errno = EINVAL;
 		return;
 	}
@@ -227,21 +227,21 @@ PURPL_EXPORT void purpl_unmap_file(struct purpl_mapping *info)
 	/* Begin all that nasty platform-specific shit */
 #ifdef _WIN32
 	/* Unmap the file view and close the handle to the mapping object */
-	UnmapViewOfFile(info->data);
-	CloseHandle(info->handle);
+	UnmapViewOfFile(mapping->data);
+	CloseHandle(mapping->handle);
 #else
 	/* Unmap the file */
-	PURPL_RETRY_INTR(munmap(info->data, info->len));
+	PURPL_RETRY_INTR(munmap(mapping->data, mapping->len));
 #endif
 
 	/* Free info */
-	free(info);
+	free(mapping);
 
 	PURPL_RESET_ERRNO;
 }
 
-PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
-				      struct purpl_mapping **info, bool map,
+char *purpl_read_file_fp(size_t *len_ret,
+				      struct purpl_mapping **mapping, bool map,
 				      FILE *fp)
 {
 	size_t len;
@@ -262,25 +262,25 @@ PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
 	 * the file (hopefully) still gets read
 	 */
 	if (will_map) {
-		struct purpl_mapping *mapping;
+		struct purpl_mapping *map;
 
-		/* Check if info is NULL */
-		if (!info) {
+		/* Check if mapping is NULL */
+		if (!mapping) {
 			errno = EINVAL;
 			will_map = false;
 		}
 
 		/* Map the file */
-		mapping = purpl_map_file(1, fp);
+		map = purpl_map_file(1, fp);
 		if (!mapping)
 			will_map = false;
 
 		/* Return info */
-		memcpy(info, &mapping, sizeof(void *));
+		memcpy(mapping, &map, sizeof(void *));
 
 		/* Set file and len */
-		file = mapping->data;
-		len = mapping->len;
+		file = map->data;
+		len = map->len;
 	}
 
 	/* Either mapping wasn't requested, or it failed */
@@ -308,7 +308,7 @@ PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
 		fseek(fp, 0, fpos);
 
 		/* Ensure info is NULL */
-		info = NULL;
+		mapping = NULL;
 	}
 
 	PURPL_RESET_ERRNO;
@@ -318,7 +318,7 @@ PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
 	return file;
 }
 
-PURPL_EXPORT char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
+char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
 				   bool map, const char *path, ...)
 {
 	va_list args;

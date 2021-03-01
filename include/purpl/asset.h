@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <string.h>
 
+#define LIBARCHIVE_STATIC
 #include <archive.h>
 #include <archive_entry.h>
 
@@ -48,25 +49,23 @@ struct purpl_asset {
  *  `purpl_load_asset_from_archive`.
  */
 struct purpl_embed {
-	char *start;
-	char *end;
-	size_t size;
-	struct archive *ar;
+	char *start; /**< The start of the embed */
+	char *end; /**< The end of the embed */
+	size_t size; /**< The size of the embed */
+	struct archive *ar; /**< The libarchive handle to the archive */
 };
 
 /**
  * @brief Load the information about an embedded archive
  *  into a `purpl_embed` structure
  * 
- * @param sym_start The start of the data (created by objcopy)
- * @param sym_end The end of the data (also created by objcopy)
- * 
- * @return Returns a usable `purpl_embed` structure
- * 
+ * @param sym_start The start of the data (created by mkembed)
+ * @param sym_end The end of the data (also created by mkembed)
+ * info
  * Embedding an archive in your executable requires you to use the
  *  `tools/mkembed` utility that gets built when you build the engine.
  */
-extern PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
+extern struct purpl_embed *purpl_load_embed(const char *sym_start,
 							 const char *sym_end);
 
 /**
@@ -78,7 +77,7 @@ extern PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
  * @return Returns NULL or a `purpl_asset` structure. Sets `errno` to ENOENT if
  *  the file is nonexistent or empty and EISDIR if it's a directory.
  */
-extern PURPL_EXPORT struct purpl_asset *
+extern struct purpl_asset *
 purpl_load_asset_from_archive(struct archive *ar, const char *path, ...);
 
 /**
@@ -93,7 +92,7 @@ purpl_load_asset_from_archive(struct archive *ar, const char *path, ...);
  * 
  * @return Returns either NULL or a usable `purpl_asset` structure.
  */
-extern PURPL_EXPORT struct purpl_asset *
+extern struct purpl_asset *
 purpl_load_asset_from_file(const char *search_paths, bool map, const char *name,
 			   ...);
 
@@ -102,7 +101,7 @@ purpl_load_asset_from_file(const char *search_paths, bool map, const char *name,
  * 
  * @param asset is the asset to free
  */
-extern PURPL_EXPORT void purpl_free_asset(struct purpl_asset *asset);
+extern void purpl_free_asset(struct purpl_asset *asset);
 
 #ifdef __cplusplus
 }

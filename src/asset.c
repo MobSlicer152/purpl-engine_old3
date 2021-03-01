@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
+struct purpl_embed *purpl_load_embed(const char *sym_start,
 						  const char *sym_end)
 {
 	struct purpl_embed *embed;
@@ -13,7 +13,7 @@ PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
 	PURPL_RESET_ERRNO;
 
 	/* Validate arguments */
-	if (!sym_start || !sym_start || !(sym_end - sym_start)) {
+	if (!sym_start || !sym_end || !(sym_end - sym_start)) {
 		errno = EINVAL;
 		return NULL;
 	}
@@ -39,7 +39,7 @@ PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
 
 	/* Load in the archive */
 	err = archive_read_open_memory(embed->ar, embed->start, embed->size);
-	if (err) {
+	if (err != ARCHIVE_OK) {
 		errno = ENOMEM; /*
 				 * Some interpretation will be necessary in
 				 * libarchive-related code
@@ -53,7 +53,7 @@ PURPL_EXPORT struct purpl_embed *purpl_load_embed(const char *sym_start,
 	return embed;
 }
 
-PURPL_EXPORT struct purpl_asset *
+struct purpl_asset *
 purpl_load_asset_from_archive(struct archive *ar, const char *path, ...)
 {
 	struct purpl_asset *asset;
@@ -138,7 +138,7 @@ purpl_load_asset_from_archive(struct archive *ar, const char *path, ...)
 	return asset;
 }
 
-PURPL_EXPORT struct purpl_asset *purpl_load_asset_from_file(
+struct purpl_asset *purpl_load_asset_from_file(
 	const char *search_paths, bool map, const char *name, ...)
 {
 	struct purpl_asset *asset;
@@ -261,7 +261,7 @@ PURPL_EXPORT struct purpl_asset *purpl_load_asset_from_file(
 	return asset;
 }
 
-PURPL_EXPORT void purpl_free_asset(struct purpl_asset *asset)
+void purpl_free_asset(struct purpl_asset *asset)
 {
 	PURPL_RESET_ERRNO;
 

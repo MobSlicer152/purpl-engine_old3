@@ -7,6 +7,7 @@
 /* Symbols from embedded file */
 extern char embed_bin_start[];
 extern char embed_bin_end[];
+extern size_t embed_bin_size;
 
 int main(int argc, char *argv[])
 {
@@ -25,7 +26,7 @@ int main(int argc, char *argv[])
 	if (!logger) {
 		fprintf(stderr, "Error opening log file: %s\n",
 			strerror(errno));
-		return -1;
+		return errno;
 	}
 
 	/* Log a message */
@@ -40,11 +41,11 @@ int main(int argc, char *argv[])
 				"Failed to load embedded archive: %s",
 				strerror(err));
 		purpl_end_logger(logger, true);
-		return -err;
+		return err;
 	}
 
 	/* Load an asset from the archive embedded in the executable */
-	test = purpl_load_asset_from_archive(embed->ar, "ffmpeg.txt");
+	test = purpl_load_asset_from_archive(embed->ar, "test.txt");
 	if (!test) {
 		err = errno;
 		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
 		archive_read_close(embed->ar);
 		archive_read_free(embed->ar);
 		purpl_end_logger(logger, true);
-		return -err;
+		return err;
 	}
 
 	/* Write the file's contents into the log */

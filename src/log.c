@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-PURPL_EXPORT struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
+struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
 						    s8 default_level,
 						    s8 first_max_level,
 						    const char *first_log_path,
@@ -57,7 +57,7 @@ PURPL_EXPORT struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
 	return logger;
 }
 
-PURPL_EXPORT int purpl_open_log(struct purpl_logger *logger, s8 max_level,
+int purpl_open_log(struct purpl_logger *logger, s8 max_level,
 				const char *path, ...)
 {
 	u8 index;
@@ -111,7 +111,7 @@ PURPL_EXPORT int purpl_open_log(struct purpl_logger *logger, s8 max_level,
 #define PRE_INFO "[info] "
 #define PRE_DEBUG "[debug] "
 
-PURPL_EXPORT size_t purpl_write_log(struct purpl_logger *logger,
+size_t purpl_write_log(struct purpl_logger *logger,
 				    const char *file, const int line, s8 index,
 				    s8 level, const char *fmt, ...)
 {
@@ -249,7 +249,7 @@ PURPL_EXPORT size_t purpl_write_log(struct purpl_logger *logger,
 	return written;
 }
 
-PURPL_EXPORT s8 purpl_set_max_level(struct purpl_logger *logger, u8 index,
+s8 purpl_set_max_level(struct purpl_logger *logger, u8 index,
 				    u8 level)
 {
 	u8 idx = index & 0xFFFFFF;
@@ -270,7 +270,7 @@ PURPL_EXPORT s8 purpl_set_max_level(struct purpl_logger *logger, u8 index,
 	return level;
 }
 
-PURPL_EXPORT void purpl_close_log(struct purpl_logger *logger, u8 index)
+void purpl_close_log(struct purpl_logger *logger, u8 index)
 {
 	PURPL_RESET_ERRNO;
 
@@ -288,7 +288,7 @@ PURPL_EXPORT void purpl_close_log(struct purpl_logger *logger, u8 index)
 	PURPL_RESET_ERRNO;
 }
 
-PURPL_EXPORT void purpl_end_logger(struct purpl_logger *logger,
+void purpl_end_logger(struct purpl_logger *logger,
 				   _Bool write_goodbye)
 {
 	uint i;

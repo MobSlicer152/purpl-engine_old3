@@ -83,26 +83,17 @@ extern "C" {
 	          * MSVC is the only (supported) Windows compiler that
 		  * uses backslashes in __FILE__
 		  */
-#define PURPL_GET_FILENAME(path) \
+#define PURPL_GET_BASENAME(path) \
 	(strrchr(path, '\\') ? strrchr(path, '\\') + 1 : path)
 #else
-#define PURPL_GET_FILENAME(path) \
+#define PURPL_GET_BASENAME(path) \
 	(strrchr(path, '/') ? strrchr(path, '/') + 1 : path)
 #endif
 
 /**
  * @brief The base name and extension of the current file
  */
-#define FILENAME PURPL_GET_FILENAME(__FILE__)
-
-/**
- * @brief Exports a function
- */
-#if _WIN32 && _MSC_VER
-#define PURPL_EXPORT __declspec(dllexport)
-#else
-#define PURPL_EXPORT
-#endif
+#define FILENAME PURPL_GET_BASENAME(__FILE__)
 
 /**
  * @brief The specified parameter is unused
@@ -163,7 +154,7 @@ struct purpl_mapping {
  *  large value that should be good enough as a fallback.  Always `free` the buffer,
  *  unless len_ret is -1 and `fmt` can't be freed in that way.
  */
-extern PURPL_EXPORT char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
+extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
 					    va_list args);
 
 /**
@@ -180,7 +171,7 @@ extern PURPL_EXPORT char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
  *  `sprintf`. Always `free` the buffer, unless len_ret is -1 and `fmt`
  *  can't be freed in that way.
  */
-extern PURPL_EXPORT char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
+extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
 
 /**
  * @brief Maps a file into the process's virtual memory using the
@@ -204,54 +195,54 @@ extern PURPL_EXPORT char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
  *  will get mad too. Check the returned structure's `prot` member for the
  *  actual protection of the pages.
  */
-extern PURPL_EXPORT struct purpl_mapping *purpl_map_file(u8 protection,
+extern struct purpl_mapping *purpl_map_file(u8 protection,
 							 FILE *fp);
 
 /**
  * @brief Unmap a file mapped with `purpl_map_file`.
  * 
- * @param info is the `purpl_mapping` structure containing information
+ * @param mapping is the `purpl_mapping` structure containing information
  *  about the mapping to be unmapped
  * 
- * This function does no error checking because it's assumed that `info`
+ * This function does no error checking because it's assumed that `mapping`
  *  will be unused after this (i.e. will be reassigned or something).
  */
-extern PURPL_EXPORT void purpl_unmap_file(struct purpl_mapping *info);
+extern void purpl_unmap_file(struct purpl_mapping *mapping);
 
 /**
  * @brief Read a file (either map it into memory or read it into a buffer)
  *
  * @param len_ret is the length of the file (you'll want to keep track of this)
- * @param info is optional if `map` is false, otherwise you need it (if `NULL`,
+ * @param mapping is optional if `map` is false, otherwise you need it (if `NULL`,
  *  `free` the buffer instead of unmapping)
  * @param map is whether or not to map the file into memory instead of reading
- *  it into a buffer (if this is true _AND_ `info` isn't `NULL`, don't free the
+ *  it into a buffer (if this is true _AND_ `mapping` isn't `NULL`, don't free the
  *  buffer, use `purpl_unmap_file`). Also, if this is true, writing to the
- *  buffer _is_ safe, but _only_ if `info->prot` is greater than 0
+ *  buffer _is_ safe, but _only_ if `mapping->prot` is greater than 0
  * @param fp is the file stream to read from/map
  *
  * @return Returns the contents of the file (either a buffer or a pointer to
- *  the pages containing the mapped contents of the file, see `info` and `map`)
+ *  the pages containing the mapped contents of the file, see `mapping` and `map`)
  */
-extern PURPL_EXPORT char *purpl_read_file_fp(size_t *len_ret,
-					     struct purpl_mapping **info,
+extern char *purpl_read_file_fp(size_t *len_ret,
+					     struct purpl_mapping **mapping,
 				bool map, FILE *fp);
 
 /**
  * @brief Read a file from a path
  * 
  * @param len_ret is the length of the file (keep track of it)
- * @param info is optional if `map` is false. If it's `NULL`, mapping failed and
+ * @param mapping is optional if `map` is false. If it's `NULL`, mapping failed and
  *  you can use `free` on the buffer instead of `purpl_unmap_file`
  * @param map is whether to map the file or read it into a buffer (see the 
- *  description for `info`)
+ *  description for `mapping`)
  * @param path is the path to the file to read/map
  *
  * @return Returns the contents of the file (either a buffer or a pointer to
- *  the pages containing the mapped contents of the file, see `info` and `map`)
+ *  the pages containing the mapped contents of the file, see `mapping` and `map`)
  */
-extern PURPL_EXPORT char *purpl_read_file(size_t *len_ret,
-					  struct purpl_mapping **info,
+extern char *purpl_read_file(size_t *len_ret,
+					  struct purpl_mapping **mapping,
 			     bool map, const char *path, ...);
 
 #ifdef __cplusplus

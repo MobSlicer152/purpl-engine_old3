@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 
 void usage(const char *prog)
 {
-	printf("Usage: %s <binary file> <symbols basename> [<output>]\n",
+	printf("Usage: %s <binary file> <symbol basename> [<output>]\n",
 	       PURPL_GET_BASENAME(prog));
 	exit(EINVAL);
 }

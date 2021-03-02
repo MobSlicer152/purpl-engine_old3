@@ -5,11 +5,8 @@ if(${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	add_library(glew STATIC ${GLEW_SOURCES})
 endif()
 
-set(ENABLE_COVERAGE OFF CACHE BOOL "Disable test coverage" FORCE)
-set(ENABLE_CPIO OFF CACHE BOOL "Disable bsdcpio" FORCE)
-set(ENABLE_TAR OFF CACHE BOOL "Disable bsdtar" FORCE)
-set(ENABLE_TEST OFF CACHE BOOL "Disable tests" FORCE)
+set(LIBZIP_DO_INSTALL OFF CACHE BOOL "Disable libzip install" FORCE)
 
 add_subdirectory(cglm)
 add_subdirectory(json-c)
-add_subdirectory(libarchive)
+add_subdirectory(libzip)

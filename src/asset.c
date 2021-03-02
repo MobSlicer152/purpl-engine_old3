@@ -4,11 +4,11 @@
 extern "C" {
 #endif
 
-struct purpl_embed *purpl_load_embed(const char *sym_start,
-						  const char *sym_end)
+struct purpl_embed *purpl_load_embed(const char *sym_start, const char *sym_end)
 {
 	struct purpl_embed *embed;
-	int err;
+	struct zip_source *src;
+	struct zip_error *err;
 
 	PURPL_RESET_ERRNO;
 
@@ -28,22 +28,24 @@ struct purpl_embed *purpl_load_embed(const char *sym_start,
 	embed->end = sym_end;
 	embed->size = embed->end - embed->start;
 
-	/* Start up libarchive */
-	embed->ar = archive_read_new();
-	if (!embed->ar)
+	/* Start up libzip */
+	err = PURPL_CALLOC(1, struct zip_error);
+	if (!err)
 		return NULL;
+	zip_error_init(err);
+	src = zip_source_buffer_create(embed->start, embed->size, 1, err);
+	if (!src) {
+		errno = (err->sys_err) ? err->sys_err : ENOENT;
+		zip_error_fini(err);
+		return NULL;
+	}
 
-	/* We're not dealing with raw or empty archives */
-	archive_read_support_compression_all(embed->ar);
-	archive_read_support_format_all(embed->ar);
-
-	/* Load in the archive */
-	err = archive_read_open_memory(embed->ar, embed->start, embed->size);
-	if (err != ARCHIVE_OK) {
-		errno = ENOMEM; /*
-				 * Some interpretation will be necessary in
-				 * libarchive-related code
-				 */
+	/* Open the archive */
+	embed->z = zip_open_from_source(src, ZIP_RDONLY, err);
+	if (err->zip_err || err->sys_err) {
+		errno = (err->sys_err) ? err->sys_err : ENOENT;
+		zip_source_free(src);
+		zip_error_fini(err);
 		return NULL;
 	}
 
@@ -53,20 +55,23 @@ struct purpl_embed *purpl_load_embed(const char *sym_start,
 	return embed;
 }
 
-struct purpl_asset *
-purpl_load_asset_from_archive(struct archive *ar, const char *path, ...)
+struct purpl_asset *purpl_load_asset_from_archive(struct zip *z,
+						  const char *path, ...)
 {
 	struct purpl_asset *asset;
-	struct archive_entry *ent;
-	int err;
+	struct zip_error *err;
 	va_list args;
 	char *path_fmt;
 	size_t path_len;
+	struct zip_file *zfp;
+	struct zip_stat stat;
+	s64 idx;
+	int e;
 
 	PURPL_RESET_ERRNO;
 
 	/* Check args */
-	if (!ar || !path) {
+	if (!z || !path) {
 		errno = EINVAL;
 		return NULL;
 	}
@@ -84,62 +89,76 @@ purpl_load_asset_from_archive(struct archive *ar, const char *path, ...)
 	if (!asset)
 		return NULL;
 
-	/* Iterate through archive entries until we find the right file */
-	while (1) {
-		/* Keep reading the next header */
-		err = archive_read_next_header(ar, &ent);
-		if (err == ARCHIVE_EOF) {
-			errno = ENOENT;
-			return NULL;
-		}
+	/* Initialize libzip error info */
+	err = PURPL_CALLOC(1, struct zip_error);
+	if (!err)
+		return NULL;
+	zip_error_init(err);
 
-		/* First, check for some other error */
-		if (err != ARCHIVE_OK)
-			continue;
+	/* Locate the requested file */
+	idx = zip_name_locate(z, path, 0);
+	if (idx < 0) {
+		err = zip_get_error(z);
+		errno = (err->sys_err) ?
+				      err->sys_err :
+				      ENOENT; /* Fuck custom error systems, errno is standard */
+		zip_error_fini(err);
+		free(asset);
+		return NULL;
+	}
 
-		/* Next, check for a match */
-		if (strcmp(path_fmt, archive_entry_pathname(ent)) != 0)
-			continue;
+	/* Stat the file */
+	e = zip_stat_index(z, idx, 0, &stat);
+	if (!e || !(stat.valid & ZIP_STAT_NAME) ||
+	    !(stat.valid &
+	      ZIP_STAT_SIZE)) { /*
+				 * If these aren't valid, we don't give a
+	      			 *  damn about other fields anyway
+				 */
+		err = zip_get_error(z);
+		errno = (err->sys_err) ? err->sys_err : ENOENT;
+	}
 
-		/* Now that we have a match, check if it's a directory */
-		if (archive_entry_filetype(ent) == AE_IFDIR) {
-			errno = EISDIR;
-			return NULL;
-		}
+	/* Use the values contained in stat */
+	asset->name = PURPL_CALLOC(strlen(stat.name), char);
+	if (!asset->name)
+		return NULL;
+	strcpy(asset->name, stat.name);
+	asset->size = stat.size;
 
-		/* At this point, we can read the file, so get its length */
-		asset->size = archive_entry_size(ent);
-		if (!asset->size) {
-			errno = ENOENT; /* This is close enough for our purposes */
-			return NULL;
-		}
+	/* Now allocate our buffer */
+	asset->data = PURPL_CALLOC(asset->size, char);
+	if (!asset->data)
+		return NULL;
 
-		/* Allocate a buffer for the file */
-		asset->data = PURPL_CALLOC(asset->size, char);
-		if (!asset->data)
-			return NULL;
+	/* Open the file */
+	zfp = zip_fopen_index(z, idx, 0);
+	if (!zfp) {
+		err = zip_get_error(z);
+		errno = (err->sys_err) ? err->sys_err : ENOENT;
+		free(asset->name);
+		free(asset->data);
+		return NULL;
+	}
 
-		/* And at last read it */
-		archive_read_data(ar, asset->data, asset->size);
-
-		/* Fill in the name of the asset */
-		asset->name = PURPL_CALLOC(strlen(archive_entry_pathname(ent)), char);
-		if (!asset->name)
-			return NULL;
-		strcpy(asset->name, archive_entry_pathname(ent));
-
-		/* If we're here, the loop can end */
-		break;
+	/* And try to read the data */
+	zip_fread(zfp, asset->data, asset->size);
+	if (!asset->data) {
+		err = zip_get_error(z);
+		errno = (err->sys_err) ? err->sys_err : ENOENT;
+		free(asset->name);
+		free(asset->data);
+		return NULL;
 	}
 
 	PURPL_RESET_ERRNO;
-	
+
 	/* Return the asset */
 	return asset;
 }
 
-struct purpl_asset *purpl_load_asset_from_file(
-	const char *search_paths, bool map, const char *name, ...)
+struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
+					       bool map, const char *name, ...)
 {
 	struct purpl_asset *asset;
 	FILE *fp;

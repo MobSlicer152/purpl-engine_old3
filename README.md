@@ -13,8 +13,6 @@ and build like this
 make -C deps/glew/auto
 
 # Currently there's no special flag for graphics because only OpenGL is planned for (Vulkan is a pain)
-# Also, sorry json-c and libarchive add so much configure time, I can't do anything about it if I
-#  want them up-to-date (which I do)
 cmake -S. -Bbuild
 cmake --build build # If you used the Makefile or Ninja generator, add on "-j`nproc`"
 build/purpl-demo
@@ -25,5 +23,6 @@ These are some really awesome libraries that have served me well in my past atte
 - [cglm](https://github.com/recp/cglm) is a great math library for doing linear algebra in C (good for graphics in particular)
 - [GLEW](https://github.com/nigels-com/glew) is an amazing OpenGL loader
 - [json-c](https://github.com/json-c/json-c) is good for parsing JSON
-- [libarchive](https://github.com/libarchive/libarchive) is a super awesome archive reader that I intend to use for embedding assets into programs (still figuring that out)
+- [libarchive](https://github.com/libarchive/libarchive) is a super awesome archive reader that I intend to use for embedding assets into programs (unfourtunately, the library seems to be broken, so in the meantime I'll use libzip. If at some point in the future it works again, I'll use it)
+- [libzip](https://github.com/nih-at/libzip) is a great zip archive manipulation library.
 - [stb](https://github.com/nothings/stb) is a collection of wonderful open source libraries contained in single header files

@@ -11,14 +11,14 @@
 #ifndef PURPL_ASSET_H
 #define PURPL_ASSET_H 1
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <string.h>
+#include <errno.h>
 
-#define LIBARCHIVE_STATIC
-#include <archive.h>
-#include <archive_entry.h>
+#include <zip.h>
 
 #include "util.h"
 
@@ -32,7 +32,8 @@ extern "C" {
 #define PURPL_MAX_PATHS 255
 
 /**
- * @brief A structure to hold information about an asset
+ * @brief A structure to hold information about an asset (you can fill it out
+ *  on your own if you have, for example, a file in a buffer).
  */
 struct purpl_asset {
 	char *name; /**< The file name of the asset */
@@ -52,7 +53,7 @@ struct purpl_embed {
 	char *start; /**< The start of the embed */
 	char *end; /**< The end of the embed */
 	size_t size; /**< The size of the embed */
-	struct archive *ar; /**< The libarchive handle to the archive */
+	struct zip *z; /**< libzip handle */
 };
 
 /**
@@ -71,14 +72,14 @@ extern struct purpl_embed *purpl_load_embed(const char *sym_start,
 /**
  * @brief Loads an asset from an archive
  * 
- * @param ar is the libarchive object to load from (for embedded, use `embed->ar`)
+ * @param z is the libzip object to load from (for embedded, use `embed->z`)
  * @param path is the path within the archive to the asset
  * 
  * @return Returns NULL or a `purpl_asset` structure. Sets `errno` to ENOENT if
  *  the file is nonexistent or empty and EISDIR if it's a directory.
  */
 extern struct purpl_asset *
-purpl_load_asset_from_archive(struct archive *ar, const char *path, ...);
+purpl_load_asset_from_archive(struct zip *z, const char *path, ...);
 
 /**
  * @brief Load an asset from a file, searching `search_paths`

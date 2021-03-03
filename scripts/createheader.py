@@ -19,11 +19,6 @@ except IndexError:
     if chdir:
         os.chdir(chdir)
 
-try:
-    namespace = str(sys.argv[3])
-except IndexError:
-    namespace = input('Namespace to create [none]: ')
-
 # Check if the file is there and not empty, in which case prompt whether to overwrite it
 if pathlib.Path(name).exists() and os.stat(name).st_size:
     res = input('File exists and is not empty, overwrite it? [no] ')
@@ -38,11 +33,7 @@ with open(name, 'wb+') as file:
     symbol = name.replace('include/', '').replace('include\\', '').replace('.',
                                                   '_').replace('/', '_').replace('\\', '_').upper()
     contents = bytes(
-        F"#pragma once\n\n#ifndef {symbol}\n#define {symbol} 1\n\n", encoding='utf8')
-    
-    if namespace:
-        contents += bytes(F"namespace {namespace} ", encoding='utf8')
-        contents += bytes("{\n\n}\n\n", encoding='utf-8')
+        F"#pragma once\n\n#ifndef {symbol}\n#define {symbol} 1\n\n#ifdef __cplusplus\nextern \"C\" " + "{\n#endif\n\n", encoding='utf8')
 
-    contents += bytes(F"#endif /* !{symbol} */\n", encoding='utf8')
+    contents += bytes("#ifdef __cplusplus\n}\n#endif" + F"#endif /* !{symbol} */\n", encoding='utf8')
     file.write(contents)

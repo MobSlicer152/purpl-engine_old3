@@ -33,7 +33,9 @@ extern "C" {
 
 /**
  * @brief A structure to hold information about an asset (you can fill it out
- *  on your own if you have, for example, a file in a buffer).
+ *  on your own if you have, for example, a file in a buffer). For standalone
+ *  embedded files, don't use `purpl_asset_free` on it, because that stuff is
+ *  read-only stack memory.
  */
 struct purpl_asset {
 	char *name; /**< The file name of the asset */
@@ -103,6 +105,13 @@ purpl_load_asset_from_file(const char *search_paths, bool map, const char *name,
  * @param asset is the asset to free
  */
 extern void purpl_free_asset(struct purpl_asset *asset);
+
+/**
+ * @brief Free the information associated with an embed
+ * 
+ * @param embed is the embed to free
+ */
+extern void purpl_free_embed(struct purpl_embed *embed);
 
 #ifdef __cplusplus
 }

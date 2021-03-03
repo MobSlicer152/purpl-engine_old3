@@ -4,11 +4,9 @@
 extern "C" {
 #endif
 
-struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
-						    s8 default_level,
-						    s8 first_max_level,
-						    const char *first_log_path,
-						    ...)
+struct purpl_logger *purpl_init_logger(u8 *first_index_ret, s8 default_level,
+				       s8 first_max_level,
+				       const char *first_log_path, ...)
 {
 	struct purpl_logger *logger;
 	char *first;
@@ -45,8 +43,8 @@ struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
 		return NULL;
 	}
 
-	logger->default_level = ((default_level < 0) ? PURPL_INFO : default_level) &
-				0xFFF;
+	logger->default_level =
+		((default_level < 0) ? PURPL_INFO : default_level) & 0xFFF;
 
 	/* Return the index of the first log\ */
 	first_index = logger->default_index;
@@ -57,8 +55,8 @@ struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
 	return logger;
 }
 
-int purpl_open_log(struct purpl_logger *logger, s8 max_level,
-				const char *path, ...)
+int purpl_open_log(struct purpl_logger *logger, s8 max_level, const char *path,
+		   ...)
 {
 	u8 index;
 	char *fmt_path;
@@ -111,9 +109,8 @@ int purpl_open_log(struct purpl_logger *logger, s8 max_level,
 #define PRE_INFO "[info] "
 #define PRE_DEBUG "[debug] "
 
-size_t purpl_write_log(struct purpl_logger *logger,
-				    const char *file, const int line, s8 index,
-				    s8 level, const char *fmt, ...)
+size_t purpl_write_log(struct purpl_logger *logger, const char *file,
+		       const int line, s8 index, s8 level, const char *fmt, ...)
 {
 	time_t rawtime;
 	struct tm *now;
@@ -249,8 +246,7 @@ size_t purpl_write_log(struct purpl_logger *logger,
 	return written;
 }
 
-s8 purpl_set_max_level(struct purpl_logger *logger, u8 index,
-				    u8 level)
+s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level)
 {
 	u8 idx = index & 0xFFFFFF;
 
@@ -288,8 +284,7 @@ void purpl_close_log(struct purpl_logger *logger, u8 index)
 	PURPL_RESET_ERRNO;
 }
 
-void purpl_end_logger(struct purpl_logger *logger,
-				   _Bool write_goodbye)
+void purpl_end_logger(struct purpl_logger *logger, _Bool write_goodbye)
 {
 	uint i;
 

@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Load an asset from the archive embedded in the executable */
-	test = purpl_load_asset_from_archive(embed->z, "test.txt");
+	test = purpl_load_asset_from_archive(embed->z, "app.json");
 	if (!test) {
 		err = errno;
 		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,
@@ -57,6 +57,10 @@ int main(int argc, char *argv[])
 	/* Write the file's contents into the log */
 	purpl_write_log(logger, FILENAME, __LINE__, -1, -1,
 			"Contents of \"(embedded zip file)/%s\":\n%s", test->name, test->data);
+
+	/* Free test and embed */
+	purpl_free_asset(test);
+	purpl_free_embed(embed);
 
 	/* Close the logger */
 	purpl_end_logger(logger, true);

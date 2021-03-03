@@ -95,7 +95,7 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	/* Allocate the mapping information */
 	mapping = PURPL_CALLOC(1, struct purpl_mapping);
 
-	/* Fix up protection */
+	/* Fix up protection (limit it to 2) */
 	prot = protection & 0xF;
 
 	/* Figure out how thicc the file is */
@@ -120,10 +120,11 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 
 /* You have to call so many weird functions for this on Windows */
 #ifdef _WIN32
+	/*
+	 * You have to go through THREE different types if you start with a
+	 *  FILE * in order to map a file on Windows, which is *great* >:(
+	 */
 	HANDLE file;
-
-	/* First, duplicate fd just in case */
-	fd2 = dup(fd);
 
 	/* Now get a handle to the file */
 	file = _get_osfhandle(fd);
@@ -245,7 +246,6 @@ char *purpl_read_file_fp(size_t *len_ret,
 				      FILE *fp)
 {
 	size_t len;
-	size_t fpos;
 	char *file;
 	bool will_map = map;
 
@@ -275,7 +275,7 @@ char *purpl_read_file_fp(size_t *len_ret,
 		if (!mapping)
 			will_map = false;
 
-		/* Return info */
+		/* Return mapping */
 		memcpy(mapping, &map, sizeof(void *));
 
 		/* Set file and len */
@@ -285,11 +285,13 @@ char *purpl_read_file_fp(size_t *len_ret,
 
 	/* Either mapping wasn't requested, or it failed */
 	if (!will_map) {
+		size_t fpos;
+
 		/* Determine file length */
 		fpos = ftell(fp);
 		fseek(fp, 0, SEEK_END);
 		len = ftell(fp);
-		fseek(fp, 0, SEEK_SET);
+		fseek(fp, 0, fpos);
 
 		/* Allocate a buffer */
 		file = PURPL_CALLOC(len + 1, char);
@@ -304,10 +306,7 @@ char *purpl_read_file_fp(size_t *len_ret,
 		/* Ensure it's terminated */
 		file[len] = 0;
 
-		/* Put fp back to where it was */
-		fseek(fp, 0, fpos);
-
-		/* Ensure info is NULL */
+		/* Put fp bainfopping is NULL */
 		mapping = NULL;
 	}
 

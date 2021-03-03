@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 
 /* These are necessary for mapping files */
 #if __linux__ || __APPLE__

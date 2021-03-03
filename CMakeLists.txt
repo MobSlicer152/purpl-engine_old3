@@ -4,6 +4,7 @@ project(purpl-engine VERSION 3.0)
 
 set(CMAKE_BUILD_TYPE Debug)
 option(PURPL_BUILD_DEMO "Whether to build the demo" ON)
+option(PURPL_BUILD_TOOLS "Whether to build the engine tools" ON)
 set(PURPL_GRAPHICS_API "OPENGL" CACHE STRING "The graphics API to use")
 
 set(CMAKE_C_STANDARD 99)
@@ -36,7 +37,14 @@ include_directories(include deps/cglm/include deps/glew/include deps/json-c deps
 add_subdirectory(deps)
 add_subdirectory(include)
 add_subdirectory(src)
-add_subdirectory(tools)
+
+if (NOT ${PURPL_BUILD_TOOLS} AND ${PURPL_BUILD_DEMO})
+	set(PURPL_BUILD_TOOLS ON CACHE BOOL "" FORCE)
+endif()
+
+if (${PURPL_BUILD_TOOLS})
+	add_subdirectory(tools)
+endif()
 
 if (${PURPL_BUILD_DEMO})
     add_subdirectory(demo)

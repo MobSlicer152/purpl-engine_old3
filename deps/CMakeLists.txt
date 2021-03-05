@@ -12,5 +12,5 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_DOC OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(cglm)
+add_subdirectory(frankentar)
 add_subdirectory(json-c)
-add_subdirectory(libzip)

@@ -28,52 +28,25 @@ struct purpl_embed *purpl_load_embed(const char *sym_start, const char *sym_end)
 	embed->end = sym_end;
 	embed->size = embed->end - embed->start;
 
-	/* Start up libzip */
-	err = PURPL_CALLOC(1, struct zip_error);
-	if (!err)
-		return NULL;
-	zip_error_init(err);
-	src = zip_source_buffer_create(embed->start, 0, 1, err);
-	if (!src) {
-		errno = (err->sys_err) ? err->sys_err : ENOMEM;
-		zip_error_fini(err);
-		return NULL;
-	}
-
-	/* Open the archive */
-	embed->z = zip_open_from_source(src, ZIP_RDONLY, err);
-	if (err->zip_err || err->sys_err) {
-		errno = (err->sys_err) ? err->sys_err : ENOENT;
-		zip_source_free(src);
-		zip_error_fini(err);
-		return NULL;
-	}
-
 	PURPL_RESET_ERRNO;
 
 	/* Return the embed details */
 	return embed;
 }
 
-struct purpl_asset *purpl_load_asset_from_archive(struct zip *z,
+struct purpl_asset *purpl_load_asset_from_archive(struct ftar *tar,
 						  const char *path, ...)
 {
 	struct purpl_asset *asset;
-	struct zip_error *err;
+	int err;
 	va_list args;
 	char *path_fmt;
 	size_t path_len;
-	struct zip_file *zfp;
-	struct zip_stat stat;
-	s64 ent_count;
-	s64 i;
-	s64 idx = -1;
-	int e;
 
 	PURPL_RESET_ERRNO;
 
 	/* Check args */
-	if (!z || !path) {
+	if (!tar || !path) {
 		errno = EINVAL;
 		return NULL;
 	}
@@ -90,72 +63,6 @@ struct purpl_asset *purpl_load_asset_from_archive(struct zip *z,
 	asset = PURPL_CALLOC(1, struct purpl_asset);
 	if (!asset)
 		return NULL;
-
-	/* Initialize libzip error info */
-	err = PURPL_CALLOC(1, struct zip_error);
-	if (!err)
-		return NULL;
-	zip_error_init(err);
-
-	/* Locate the requested file */
-	ent_count = zip_get_num_entries(z, 0);
-	if (!ent_count) {
-		errno = ENOENT;
-		return NULL;
-	}
-	for (i = 0; i < ent_count; i++) {
-		/* Stat the file */
-		e = zip_stat_index(z, idx, 0, &stat);
-		if (e < 0 || !(stat.valid & ZIP_STAT_NAME) ||
-		    !(stat.valid & ZIP_STAT_SIZE)) { /*
-						      * If these aren't valid, we don't give a
-		      				      *  damn about other fields anyway
-						      */
-			err = zip_get_error(z);
-			errno = (err->sys_err) ? err->sys_err : ENOENT;
-		}
-
-		/* Compare the name */
-		if (strcmp(path_fmt, stat.name) != 0)
-			continue;
-
-		/* Try opening the file */
-		zfp = zip_fopen_index(z, i, 0);
-		if (!zfp)
-			continue;
-
-		/* If we have the file opened, we're done */
-		idx = i;
-		break;
-	}
-
-	/* Check if we didn't find the file */
-	if (!zfp || idx < 0) {
-		errno = ENOENT;
-		return NULL;
-	}
-
-	/* Use the values contained in stat */
-	asset->name = PURPL_CALLOC(strlen(stat.name), char);
-	if (!asset->name)
-		return NULL;
-	strcpy(asset->name, stat.name);
-	asset->size = stat.size;
-
-	/* Now allocate our buffer */
-	asset->data = PURPL_CALLOC(asset->size, char);
-	if (!asset->data)
-		return NULL;
-
-	/* And try to read the data */
-	zip_fread(zfp, asset->data, asset->size);
-	if (!asset->data) {
-		err = zip_get_error(z);
-		errno = (err->sys_err) ? err->sys_err : ENOENT;
-		free(asset->name);
-		free(asset->data);
-		return NULL;
-	}
 
 	PURPL_RESET_ERRNO;
 
@@ -295,6 +202,10 @@ void purpl_free_asset(struct purpl_asset *asset)
 {
 	PURPL_RESET_ERRNO;
 
+	/* Check if we should actually try to do anything */
+	if (!asset)
+		return;
+
 	/* If the file is mapped, deal with that */
 	if (asset->mapped)
 		purpl_unmap_file(asset->mapping);
@@ -311,11 +222,9 @@ void purpl_free_embed(struct purpl_embed *embed)
 {
 	PURPL_RESET_ERRNO;
 
-	/* Close the zip file */
-	zip_close(embed->z);
-
 	/* Free the structure */
-	free(embed);
+	if (embed)
+		free(embed);
 
 	PURPL_RESET_ERRNO;
 }

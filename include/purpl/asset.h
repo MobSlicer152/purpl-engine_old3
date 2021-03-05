@@ -4,6 +4,11 @@
  * @brief Utilities for loading assets
  * 
  * @copyright Copyright (c) MobSlicer152 2021
+ * This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
+ * Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
+ * 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
  */
 
 #pragma once
@@ -18,7 +23,8 @@
 #include <string.h>
 #include <errno.h>
 
-#include <zip.h>
+#include <frankentar.h>
+#include <frankentar/read.h>
 
 #include "util.h"
 
@@ -55,7 +61,7 @@ struct purpl_embed {
 	char *start; /**< The start of the embed */
 	char *end; /**< The end of the embed */
 	size_t size; /**< The size of the embed */
-	struct zip *z; /**< libzip handle */
+	struct ftar *tar; /**< Frankentar handle */
 };
 
 /**
@@ -74,14 +80,15 @@ extern struct purpl_embed *purpl_load_embed(const char *sym_start,
 /**
  * @brief Loads an asset from an archive
  * 
- * @param z is the libzip object to load from (for embedded, use `embed->z`)
+ * @param tar is the Frankentar object to load from (for embedded archives,
+ *  use `embed->tar`)
  * @param path is the path within the archive to the asset
  * 
  * @return Returns NULL or a `purpl_asset` structure. Sets `errno` to ENOENT if
  *  the file is nonexistent or empty and EISDIR if it's a directory.
  */
 extern struct purpl_asset *
-purpl_load_asset_from_archive(struct zip *z, const char *path, ...);
+purpl_load_asset_from_archive(struct ftar *tar, const char *path, ...);
 
 /**
  * @brief Load an asset from a file, searching `search_paths`

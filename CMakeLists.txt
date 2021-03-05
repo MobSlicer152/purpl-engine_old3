@@ -32,7 +32,7 @@ if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	include_directories(${OPENGL_INCLUDE_DIR})
 endif()
 
-include_directories(include deps/cglm/include deps/glew/include deps/json-c deps/libzip/lib deps/stb)
+include_directories(include deps/cglm/include deps/glew/include deps/json-c deps/stb tools/frankentar/include)
 
 add_subdirectory(deps)
 add_subdirectory(include)
@@ -51,7 +51,7 @@ if (${PURPL_BUILD_DEMO})
 endif()
 
 add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES})
-target_link_libraries(purpl cglm glew json-c zip)
+target_link_libraries(purpl cglm ftar glew json-c)
 
 if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	target_link_libraries(purpl OpenGL::GL)

@@ -35,5 +35,5 @@ with open(name, 'wb+') as file:
     contents = bytes(
         F"#pragma once\n\n#ifndef {symbol}\n#define {symbol} 1\n\n#ifdef __cplusplus\nextern \"C\" " + "{\n#endif\n\n", encoding='utf8')
 
-    contents += bytes("#ifdef __cplusplus\n}\n#endif" + F"#endif /* !{symbol} */\n", encoding='utf8')
+    contents += bytes("#ifdef __cplusplus\n}\n#endif" + F"\n\n#endif /* !{symbol} */\n", encoding='utf8')
     file.write(contents)

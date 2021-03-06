@@ -10,3 +10,6 @@
 [submodule "deps/stb"]
 	path = deps/stb
 	url = https://github.com/nothings/stb.git
+[submodule "deps/frankentar"]
+	path = deps/frankentar
+	url = https://github.com/MobSlicer152/frankentar.git

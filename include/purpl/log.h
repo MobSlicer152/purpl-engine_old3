@@ -43,7 +43,14 @@ extern "C" {
  *  written. By the way, the WTF level is for when you have no clue what
  *  the fuck happened.
  */
-enum purpl_log_level { PURPL_WTF, PURPL_FATAL, PURPL_ERROR, PURPL_WARNING, PURPL_INFO, PURPL_DEBUG };
+enum purpl_log_level {
+	PURPL_WTF,
+	PURPL_FATAL,
+	PURPL_ERROR,
+	PURPL_WARNING,
+	PURPL_INFO,
+	PURPL_DEBUG
+};
 
 /**
  * @brief Holds information about log files to be used with the
@@ -72,8 +79,7 @@ struct purpl_logger {
  *  `purpl_close_log` to close an individual log or `purpl_end_logger` to
  *  close all the logs.
  */
-extern struct purpl_logger *
-purpl_init_logger(u8 *first_index_ret,
+extern struct purpl_logger *purpl_init_logger(u8 *first_index_ret,
 					      s8 default_level,
 					      s8 first_max_level,
 					      const char *first_log_path, ...);
@@ -90,8 +96,7 @@ purpl_init_logger(u8 *first_index_ret,
  * This function opens a new log file for a `purpl_logger` structure
  *  to be written to. Close it with `purpl_logger_close`.
  */
-extern int purpl_open_log(struct purpl_logger *logger,
-				       s8 max_level,
+extern int purpl_open_log(struct purpl_logger *logger, s8 max_level,
 			  const char *path, ...);
 
 /**
@@ -110,10 +115,9 @@ extern int purpl_open_log(struct purpl_logger *logger,
  *  by `index`. Don't be an idiot, use the right format specifiers so that 
  *  your code is less vulnerable.
  */
-extern size_t purpl_write_log(struct purpl_logger *logger,
-				    const char *file, const int line,
-				    s8 index, s8 level, const char *fmt,
-				    ...);
+extern size_t purpl_write_log(struct purpl_logger *logger, const char *file,
+			      const int line, s8 index, s8 level,
+			      const char *fmt, ...);
 
 /**
  * @brief Sets the max level for the specified log
@@ -123,8 +127,7 @@ extern size_t purpl_write_log(struct purpl_logger *logger,
  * @param level is the new max level for the specified index
  * @return Returns `level`
  */
-extern s8 purpl_set_max_level(struct purpl_logger *logger,
-					   u8 index, u8 level);
+extern s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level);
 
 /**
  * @brief Closes a log
@@ -144,8 +147,7 @@ extern void purpl_close_log(struct purpl_logger *logger, u8 index);
  * @param write_goodbye is whether or not to log a goodbye message to
  *  each log before termination
  */
-extern void purpl_end_logger(struct purpl_logger *logger,
-					  bool write_goodbye);
+extern void purpl_end_logger(struct purpl_logger *logger, bool write_goodbye);
 
 #ifdef __cplusplus
 }

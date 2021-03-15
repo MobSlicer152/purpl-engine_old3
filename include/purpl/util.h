@@ -83,7 +83,7 @@ extern "C" {
 #define PURPL_RESET_ERRNO (errno = 0)
 
 /**
- * @brief Get the base name of `path`
+ * @brief Get the base name of `path` (entirely stolen from Stack Overflow)
  */
 #if _WIN32 && _MSC_VER /*
 	          * MSVC is the only (supported) Windows compiler that

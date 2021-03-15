@@ -16,15 +16,14 @@
 #ifndef PURPL_ASSET_H
 #define PURPL_ASSET_H 1
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <string.h>
-#include <errno.h>
 
-#include <frankentar.h>
-#include <frankentar/read.h>
+#define LIBARCHIVE_STATIC
+#include <archive.h>
+#include <archive_entry.h>
 
 #include "util.h"
 
@@ -38,10 +37,7 @@ extern "C" {
 #define PURPL_MAX_PATHS 255
 
 /**
- * @brief A structure to hold information about an asset (you can fill it out
- *  on your own if you have, for example, a file in a buffer). For standalone
- *  embedded files, don't use `purpl_asset_free` on it, because that stuff is
- *  read-only stack memory.
+ * @brief A structure to hold information about an asset
  */
 struct purpl_asset {
 	char *name; /**< The file name of the asset */
@@ -61,7 +57,7 @@ struct purpl_embed {
 	char *start; /**< The start of the embed */
 	char *end; /**< The end of the embed */
 	size_t size; /**< The size of the embed */
-	struct ftar *tar; /**< Frankentar handle */
+	struct archive *ar; /**< The libarchive handle to the archive */
 };
 
 /**
@@ -70,25 +66,26 @@ struct purpl_embed {
  * 
  * @param sym_start The start of the data (created by mkembed)
  * @param sym_end The end of the data (also created by mkembed)
- * info
+ *
+ * @return Returns `NULL` or a `purpl_embed` structure.
+ * 
  * Embedding an archive in your executable requires you to use the
  *  `tools/mkembed` utility that gets built when you build the engine.
  */
 extern struct purpl_embed *purpl_load_embed(const char *sym_start,
-							 const char *sym_end);
+					    const char *sym_end);
 
 /**
  * @brief Loads an asset from an archive
  * 
- * @param tar is the Frankentar object to load from (for embedded archives,
- *  use `embed->tar`)
+ * @param ar is the libarchive object to load from (for embedded, use `embed->ar`)
  * @param path is the path within the archive to the asset
  * 
- * @return Returns NULL or a `purpl_asset` structure. Sets `errno` to ENOENT if
+ * @return Returns `NULL` or a `purpl_asset` structure. Sets `errno` to ENOENT if
  *  the file is nonexistent or empty and EISDIR if it's a directory.
  */
-extern struct purpl_asset *
-purpl_load_asset_from_archive(struct ftar *tar, const char *path, ...);
+extern struct purpl_asset *purpl_load_asset_from_archive(struct archive *ar,
+							 const char *path, ...);
 
 /**
  * @brief Load an asset from a file, searching `search_paths`
@@ -100,11 +97,11 @@ purpl_load_asset_from_archive(struct ftar *tar, const char *path, ...);
  * @param name is the path to the file relative to the first search
  *  path where that name is found
  * 
- * @return Returns either NULL or a usable `purpl_asset` structure.
+ * @return Returns either `NULL` or a usable `purpl_asset` structure.
  */
-extern struct purpl_asset *
-purpl_load_asset_from_file(const char *search_paths, bool map, const char *name,
-			   ...);
+extern struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
+						      bool map,
+						      const char *name, ...);
 
 /**
  * @brief Free the information associated with an asset
@@ -116,7 +113,7 @@ extern void purpl_free_asset(struct purpl_asset *asset);
 /**
  * @brief Free the information associated with an embed
  * 
- * @param embed is the embed to free
+ * @param embed is the `purpl_embed` structure to free
  */
 extern void purpl_free_embed(struct purpl_embed *embed);
 

@@ -44,9 +44,19 @@ int main(int argc, char *argv[])
 		return err;
 	}
 
+	test = purpl_load_asset_from_archive(embed->ar, "app.json");
+	if (!test) {
+		err = errno;
+		purpl_write_log(
+			logger, FILENAME, __LINE__, -1, PURPL_FATAL,
+			"Failed to load asset from embedded archive: %s",
+			strerror(err));
+		return err;
+	}
+
 	/* Write the file's contents into the log */
-	//purpl_write_log(logger, FILENAME, __LINE__, -1, -1,
-	//		"Contents of \"(embedded zip file)/%s\":\n%s", test->name, test->data);
+	purpl_write_log(logger, FILENAME, __LINE__, -1, -1,
+			"Contents of \"(embedded archive)/%s\":\n%s", test->name, test->data);
 
 	/* Free test and embed */
 	purpl_free_asset(test);

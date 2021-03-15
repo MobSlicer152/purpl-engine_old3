@@ -215,7 +215,7 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 	fp = logger->logs[idx];
 
 	/* Format the message */
-	msg = purpl_fmt_text(&msg_len, "%s%s:%d %d:%d:%d %d/%d/%d: %s\n",
+	msg = purpl_fmt_text(&msg_len, "%s%s:%d %d:%d:%d %d/%d/%d: %s",
 			     lvl_pre, file, line, now->tm_hour, now->tm_min,
 			     now->tm_sec, now->tm_mday, now->tm_mon + 1,
 			     now->tm_year - 70, fmt_ptr);
@@ -231,6 +231,17 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 		(fmt_len) ? (void)0 : free(fmt_ptr);
 		free(lvl_pre);
 		return -1;
+	}
+
+	/* If necessary, write a newline */
+	if (fmt_ptr[fmt_len - 2] != '\n') {
+		written = fwrite("\n", sizeof(char), 1, fp);
+		if (!written) {
+			(fmt_len) ? (void)0 : free(fmt_ptr);
+			(msg_len) ? (void)0 : free(msg);
+			free(lvl_pre);
+			return -1;
+		}
 	}
 
 	/* Just in case */

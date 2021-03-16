@@ -32,9 +32,9 @@ struct purpl_embed *purpl_load_embed(const char *sym_start, const char *sym_end)
 	if (!embed->ar)
 		return NULL;
 
-	/* We're not dealing with raw or empty archives */
-	archive_read_support_compression_all(embed->ar);
-	archive_read_support_format_all(embed->ar);
+	/* Enable support for bzip'ed tar archives because they're good */
+	archive_read_support_filter_bzip2(embed->ar);
+	archive_read_support_format_tar(embed->ar);
 
 	/* Load in the archive */
 	err = archive_read_open_memory(embed->ar, embed->start, embed->size);

@@ -48,6 +48,9 @@ endif()
 
 if (${PURPL_BUILD_DEMO})
     add_subdirectory(demo)
+	if (MSVC_IDE)
+		set(VS_STARTUP_PROJECT purpl-demo)
+	endif()
 endif()
 
 add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES})

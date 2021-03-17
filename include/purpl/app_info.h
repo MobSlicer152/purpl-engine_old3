@@ -35,9 +35,10 @@
  *  the json-c examples and the app info functions for guidance.
  */
 struct purpl_app_info {
-	struct purpl_asset *json; /**< The JSON file loaded from the archive */
+	struct purpl_asset *json; /**< The JSON file */
 	struct json_object *root; /**< The root key of the JSON file */
 	char *name; /**< The name of the app */
+	char *log; /**< The default log path */
 	char ver_maj; /**< The major version of the app */
 	char ver_min; /**< The minor version of the app */
 	char *search_paths; /**< Where to search for assets */

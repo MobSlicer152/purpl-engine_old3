@@ -33,7 +33,8 @@ struct purpl_embed *purpl_load_embed(const char *sym_start, const char *sym_end)
 		return NULL;
 
 	/* Enable support for tar archives because they're good */
-	archive_read_support_format_tar(embed->ar);
+	archive_read_support_format_all(embed->ar);
+	archive_read_support_filter_all(embed->ar);
 
 	/* Load in the archive */
 	err = archive_read_open_memory(embed->ar, embed->start, embed->size);

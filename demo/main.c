@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 		return err;
 	}
 
-	test = purpl_load_asset_from_archive(embed->ar, "embed/app.json");
+	test = purpl_load_asset_from_archive(embed->ar, "app.json");
 	if (!test) {
 		err = errno;
 		purpl_write_log(

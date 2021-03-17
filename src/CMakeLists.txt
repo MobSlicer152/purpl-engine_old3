@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(PURPL_COMMON_SOURCES
+	${CMAKE_CURRENT_LIST_DIR}/app_info.c
 	${CMAKE_CURRENT_LIST_DIR}/asset.c
 	${CMAKE_CURRENT_LIST_DIR}/log.c
 	${CMAKE_CURRENT_LIST_DIR}/util.c

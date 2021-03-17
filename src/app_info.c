@@ -135,7 +135,7 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 		/* Get its length */
 		paths_len += strlen(cur);
 		if (i < n_paths - 1)
-			paths_len++; /* The separating colon */
+			paths_len += sizeof(PURPL_PATH_SEP_STR);
 	}
 
 	/* Allocate the buffer */
@@ -159,7 +159,8 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 		/* Copy it to the buffer */
 		j += sprintf(info->search_paths + j, "%s", cur);
 		if (i < n_paths - 1)
-			j += sprintf(info->search_paths + j, ":");
+			j += sprintf(info->search_paths + j, "%s",
+				     PURPL_PATH_SEP_STR);
 	}
 
 	/* Free stuff */

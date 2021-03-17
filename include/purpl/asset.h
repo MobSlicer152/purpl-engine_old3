@@ -37,6 +37,11 @@ extern "C" {
 #define PURPL_MAX_PATHS 255
 
 /**
+ * @brief The character which separates paths in search path lists
+ */
+#define PURPL_PATH_SEP_STR ";"
+
+/**
  * @brief A structure to hold information about an asset
  */
 struct purpl_asset {

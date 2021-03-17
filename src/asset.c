@@ -180,12 +180,13 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 	strcpy(paths_full, search_paths);
 
 	/* Figure out how many paths there are */
-	tmp = strtok(paths_full, ":");
+	tmp = strtok(paths_full, PURPL_PATH_SEP_STR);
 	if (!tmp) { /* Blame the user, they probably messed up */
 		errno = EINVAL;
 		return NULL;
 	}
-	for (path_count = 1; path_count < PURPL_MAX_PATHS && strtok(NULL, ":");
+	for (path_count = 1;
+	     path_count < PURPL_MAX_PATHS && strtok(NULL, PURPL_PATH_SEP_STR);
 	     path_count++)
 		;
 
@@ -198,13 +199,13 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 	strcpy(paths_full, search_paths);
 
 	/* Separate the paths into individual pointers */
-	tmp = strtok(paths_full, ":");
+	tmp = strtok(paths_full, PURPL_PATH_SEP_STR);
 	paths[0] = PURPL_CALLOC(strlen(tmp), char);
 	if (!paths[0])
 		return NULL;
 	strcpy(paths[0], tmp);
 	for (i = 1; i < path_count; i++) {
-		tmp = strtok(NULL, ":");
+		tmp = strtok(NULL, PURPL_PATH_SEP_STR);
 		paths[i] = PURPL_CALLOC(strlen(tmp), char);
 		if (!paths[i])
 			return NULL;
@@ -232,10 +233,6 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 
 	/* Free some shit */
 	(name_len > 0) ? (void)0 : free(name_fmt);
-	for (i = 0; i < path_count; i++) {
-		if (paths[i])
-			free(paths[i]);
-	}
 	free(paths);
 
 	/* Now we can finally allocate our structure */

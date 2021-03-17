@@ -1,4 +1,6 @@
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(CGLM_SHARED OFF CACHE BOOL "" FORCE)
+set(CGLM_STATIC ON CACHE BOOL "" FORCE)
 
 if(${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	set(GLEW_SOURCES glew/src/glew.c)
@@ -14,3 +16,4 @@ set(ENABLE_TEST OFF CACHE BOOL "Disable tests" FORCE)
 add_subdirectory(cglm)
 add_subdirectory(json-c)
 add_subdirectory(libarchive)
+set_target_properties(archive PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)

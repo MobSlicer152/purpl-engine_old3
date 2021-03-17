@@ -8,8 +8,9 @@ struct purpl_embed *purpl_load_embed(const char *sym_start, const char *sym_end)
 {
 	struct purpl_embed *embed;
 	int err;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Validate arguments */
 	if (!sym_start || !sym_end || !(sym_end - sym_start)) {
@@ -46,7 +47,7 @@ struct purpl_embed *purpl_load_embed(const char *sym_start, const char *sym_end)
 		return NULL;
 	}
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	/* Return the embed details */
 	return embed;
@@ -61,8 +62,9 @@ struct purpl_asset *purpl_load_asset_from_archive(struct archive *ar,
 	va_list args;
 	char *path_fmt;
 	size_t path_len;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check args */
 	if (!ar || !path) {
@@ -135,7 +137,7 @@ struct purpl_asset *purpl_load_asset_from_archive(struct archive *ar,
 		break;
 	}
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	/* Return the asset */
 	return asset;
@@ -156,8 +158,9 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 	char *paths_full;
 	u8 path_count;
 	u8 i;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check args */
 	if (!search_paths || !name) {
@@ -258,7 +261,7 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 	/* Close the file */
 	fclose(fp);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	/* Return the asset */
 	return asset;
@@ -266,7 +269,9 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 
 void purpl_free_asset(struct purpl_asset *asset)
 {
-	PURPL_RESET_ERRNO;
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* If the file is mapped, deal with that */
 	if (asset->mapped)
@@ -277,12 +282,14 @@ void purpl_free_asset(struct purpl_asset *asset)
 	/* Free the rest of the structure */
 	free(asset);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 }
 
 void purpl_free_embed(struct purpl_embed *embed)
 {
-	PURPL_RESET_ERRNO;
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
 
 	if (!embed) {
 		errno = EINVAL;
@@ -296,7 +303,7 @@ void purpl_free_embed(struct purpl_embed *embed)
 	/* Free the embed */
 	free(embed);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 }
 
 #ifdef __cplusplus

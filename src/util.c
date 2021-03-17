@@ -5,14 +5,14 @@
 extern "C" {
 #endif
 
-char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
-				     va_list args)
+char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args)
 {
 	size_t len;
 	char *buf;
 	va_list ap;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check our parameters */
 	if (!len_ret || !fmt || !args) {
@@ -50,7 +50,8 @@ char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
 	}
 	*len_ret = len;
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
+
 	return buf;
 }
 
@@ -58,8 +59,9 @@ char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 {
 	va_list args;
 	char *fmt_ptr;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check everything */
 	if (!len_ret || !fmt) {
@@ -71,7 +73,7 @@ char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
 	fmt_ptr = purpl_fmt_text_va(len_ret, fmt, args);
 	va_end(args);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	return fmt_ptr;
 }
@@ -83,8 +85,9 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	int fd;
 	int fd2;
 	size_t fpos;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check arguments */
 	if (!fp) {
@@ -145,14 +148,16 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	/* Create a mapping object, whatever the fuck that's meant to be */
 	mapping->handle = CreateFileMappingA(file, NULL, PAGE_EXECUTE_READWRITE,
 					     0, PURPL_HIGH(mapping->len, DWORD),
-					     PURPL_LOW(mapping->len, DWORD), NULL);
+					     PURPL_LOW(mapping->len, DWORD),
+					     NULL);
 	if (!mapping->handle) {
 		errno = ENOMEM;
 		return NULL;
 	}
 
 	/* Create a "view" of the mapping */
-	mapping->data = MapViewOfFile(mapping->handle, prot, 0, 0, mapping->len);
+	mapping->data =
+		MapViewOfFile(mapping->handle, prot, 0, 0, mapping->len);
 	if (!mapping->data) {
 		/* 
 		 * Microsoft brought this upon us by having
@@ -182,7 +187,7 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	}
 
 	/* Map the file */
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO;
 	PURPL_RETRY_INTR(mapping->data =
 				 mmap(NULL, mapping->len, prot,
 				      (prot - 1) ? MAP_SHARED : MAP_PRIVATE,
@@ -191,7 +196,7 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	/* If a permission error arises, downgrade requested access */
 	if (!mapping->data && errno == EPERM) {
 		prot--;
-		PURPL_RESET_ERRNO;
+		PURPL_RESTORE_ERRNO;
 		PURPL_RETRY_INTR(mapping->data = mmap(NULL, mapping->len,
 						      prot - 1, MAP_SHARED, fd2,
 						      0));
@@ -200,7 +205,7 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	if (!mapping->data)
 		/* errno is already initialized to something valid */
 		return NULL;
-	
+
 	/* Do some final error checking */
 	if (errno)
 		return NULL;
@@ -209,7 +214,7 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	/* Close fd2 */
 	close(fd2);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	/* Return the map */
 	return mapping;
@@ -217,7 +222,9 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 
 void purpl_unmap_file(struct purpl_mapping *mapping)
 {
-	PURPL_RESET_ERRNO;
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check argument */
 	if (!mapping) {
@@ -238,18 +245,19 @@ void purpl_unmap_file(struct purpl_mapping *mapping)
 	/* Free info */
 	free(mapping);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 }
 
-char *purpl_read_file_fp(size_t *len_ret,
-				      struct purpl_mapping **mapping, bool map,
-				      FILE *fp)
+char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **mapping,
+			 bool map, FILE *fp)
 {
 	size_t len;
 	char *file;
 	bool will_map = map;
+	struct purpl_mapping *map_info;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Validate arguments */
 	if (!len_ret || !fp) {
@@ -262,8 +270,6 @@ char *purpl_read_file_fp(size_t *len_ret,
 	 * the file (hopefully) still gets read
 	 */
 	if (will_map) {
-		struct purpl_mapping *map;
-
 		/* Check if mapping is NULL */
 		if (!mapping) {
 			errno = EINVAL;
@@ -271,16 +277,9 @@ char *purpl_read_file_fp(size_t *len_ret,
 		}
 
 		/* Map the file */
-		map = purpl_map_file(1, fp);
-		if (!mapping)
+		map_info = purpl_map_file(1, fp);
+		if (!map_info)
 			will_map = false;
-
-		/* Return mapping */
-		memcpy(mapping, &map, sizeof(void *));
-
-		/* Set file and len */
-		file = map->data;
-		len = map->len;
 	}
 
 	/* Either mapping wasn't requested, or it failed */
@@ -310,20 +309,33 @@ char *purpl_read_file_fp(size_t *len_ret,
 		mapping = NULL;
 	}
 
-	PURPL_RESET_ERRNO;
+	/* This has to be here to avoid a segfault */
+	if (will_map) {
+		/* Return mapping */
+		memcpy(mapping, &map_info, sizeof(void *));
+
+		/* Set file and len */
+		file = map_info->data;
+		len = map_info->len;
+	}
+
+	PURPL_RESTORE_ERRNO(___errno);
 
 	/* Return */
 	*len_ret = len;
 	return file;
 }
 
-char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
-				   bool map, const char *path, ...)
+char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info, bool map,
+		      const char *path, ...)
 {
 	va_list args;
 	char *path_fmt;
 	size_t path_len;
 	FILE *fp;
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check args */
 	if (!len_ret || !path || (map && !info)) {
@@ -341,7 +353,7 @@ char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info,
 	if (!fp)
 		return NULL;
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	/* Return read_file_fp */
 	return purpl_read_file_fp(len_ret, info, map, fp);

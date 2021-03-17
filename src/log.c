@@ -13,8 +13,9 @@ struct purpl_logger *purpl_init_logger(u8 *first_index_ret, s8 default_level,
 	va_list args;
 	size_t len;
 	u8 first_index;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* First, check our parameters */
 	if (!first_index_ret || !first_log_path) {
@@ -34,6 +35,8 @@ struct purpl_logger *purpl_init_logger(u8 *first_index_ret, s8 default_level,
 
 	/* Allocate the file stream pointers */
 	logger->logs = PURPL_CALLOC(PURPL_MAX_LOGS, FILE *);
+	if (!logger->logs)
+		return NULL;
 
 	/* Open the first log and fill out the structure */
 	logger->default_index = purpl_open_log(logger, first_max_level, first) &
@@ -50,7 +53,7 @@ struct purpl_logger *purpl_init_logger(u8 *first_index_ret, s8 default_level,
 	first_index = logger->default_index;
 	*first_index_ret = first_index;
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	return logger;
 }
@@ -62,8 +65,10 @@ int purpl_open_log(struct purpl_logger *logger, s8 max_level, const char *path,
 	char *fmt_path;
 	size_t len;
 	va_list args;
+	s8 max;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check the parameters */
 	if (!logger || !path) {
@@ -91,9 +96,10 @@ int purpl_open_log(struct purpl_logger *logger, s8 max_level, const char *path,
 	}
 
 	/* Set the max level for the log */
-	logger->max_level[index] = (max_level < 0) ? PURPL_DEBUG : max_level;
+	max = max_level & 0x3F;
+	logger->max_level[index] = (max < 0) ? PURPL_DEBUG : max;
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	/* Increment the number of logs and return */
 	logger->nlogs++;
@@ -124,8 +130,9 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 	size_t written;
 	FILE *fp;
 	va_list args;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check our args */
 	if (!logger || !file || !line || !fmt) {
@@ -252,16 +259,17 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 	(fmt_len) ? (void)0 : free(fmt_ptr);
 	free(lvl_pre);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	return written;
 }
 
 s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level)
 {
-	u8 idx = index & 0xFFFFFF;
+	u8 idx = index & 0x3F;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check arguments */
 	if (!logger || idx > logger->nlogs) {
@@ -270,16 +278,18 @@ s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level)
 	}
 
 	/* Change the level */
-	logger->max_level[idx] = level & 0xFFF;
+	logger->max_level[idx] = level & 0x7;
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 
 	return level;
 }
 
 void purpl_close_log(struct purpl_logger *logger, u8 index)
 {
-	PURPL_RESET_ERRNO;
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check our args */
 	if (!logger || !logger->logs[index]) {
@@ -291,15 +301,17 @@ void purpl_close_log(struct purpl_logger *logger, u8 index)
 	fclose(logger->logs[index]);
 	logger->nlogs--;
 	logger->max_level[index] = 0;
+	free(logger->logs);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 }
 
 void purpl_end_logger(struct purpl_logger *logger, _Bool write_goodbye)
 {
 	uint i;
+	int ___errno;
 
-	PURPL_RESET_ERRNO;
+	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check args */
 	if (!logger) {
@@ -350,7 +362,7 @@ void purpl_end_logger(struct purpl_logger *logger, _Bool write_goodbye)
 	/* Free the logger */
 	free(logger);
 
-	PURPL_RESET_ERRNO;
+	PURPL_RESTORE_ERRNO(___errno);
 }
 
 #ifdef __cplusplus

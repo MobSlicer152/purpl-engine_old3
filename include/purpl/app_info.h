@@ -63,4 +63,14 @@ extern struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 						  bool allow_external,
 						  const char *path, ...);
 
+/**
+ * @brief Free a `purpl_app_info` structure
+ * 
+ * @param info is the app info to free
+ * 
+ * Frees the information associated with an app info file
+ *  loaded into the engine
+ */
+extern void purpl_free_app_info(struct purpl_app_info *info);
+
 #endif /* !PURPL_APP_INFO_H */

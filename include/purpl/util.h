@@ -75,12 +75,17 @@ extern "C" {
 /**
  * @brief 10% more convenient `calloc` for arrays
  */
-#define PURPL_CALLOC(count, type) calloc(count, sizeof(type));
+#define PURPL_CALLOC(count, type) (calloc((count), sizeof(type)))
 
 /**
- * @brief Resets `errno`
+ * @brief Saves `errno` in `err`, use with `PURPL_RESTORE_ERRNO`
  */
-#define PURPL_RESET_ERRNO (errno = 0)
+#define PURPL_SAVE_ERRNO(err) (err = errno)
+
+/**
+ * @brief Resets `errno` to the value in `err`, use with `PURPL_SAVE_ERRNO`
+ */
+#define PURPL_RESTORE_ERRNO(err) (errno = err)
 
 /**
  * @brief Get the base name of `path` (entirely stolen from Stack Overflow)
@@ -160,8 +165,7 @@ struct purpl_mapping {
  *  large value that should be good enough as a fallback.  Always `free` the buffer,
  *  unless len_ret is -1 and `fmt` can't be freed in that way.
  */
-extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt,
-					    va_list args);
+extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
 
 /**
  * @brief Formats text as `sprintf` would
@@ -201,8 +205,7 @@ extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
  *  will get mad too. Check the returned structure's `prot` member for the
  *  actual protection of the pages.
  */
-extern struct purpl_mapping *purpl_map_file(u8 protection,
-							 FILE *fp);
+extern struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp);
 
 /**
  * @brief Unmap a file mapped with `purpl_map_file`.
@@ -230,8 +233,7 @@ extern void purpl_unmap_file(struct purpl_mapping *mapping);
  * @return Returns the contents of the file (either a buffer or a pointer to
  *  the pages containing the mapped contents of the file, see `mapping` and `map`)
  */
-extern char *purpl_read_file_fp(size_t *len_ret,
-					     struct purpl_mapping **mapping,
+extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **mapping,
 				bool map, FILE *fp);
 
 /**
@@ -247,8 +249,7 @@ extern char *purpl_read_file_fp(size_t *len_ret,
  * @return Returns the contents of the file (either a buffer or a pointer to
  *  the pages containing the mapped contents of the file, see `mapping` and `map`)
  */
-extern char *purpl_read_file(size_t *len_ret,
-					  struct purpl_mapping **mapping,
+extern char *purpl_read_file(size_t *len_ret, struct purpl_mapping **mapping,
 			     bool map, const char *path, ...);
 
 #ifdef __cplusplus

@@ -12,11 +12,6 @@ set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_EXTENSIONS TRUE)
 
 set(CMAKE_C_FLAGS "-O2 -DPURPL_USE_${PURPL_GRAPHICS_API}")
-if (MSVC OR ${CMAKE_GENERATOR} MATCHES "NMake")
-	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
-else()
-	set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-discarded-qualifiers -Wno-deprecated-declarations") # It's 2 warnings disabled out of tons of other warnings, chill
-endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	find_package(X11)
@@ -35,6 +30,14 @@ endif()
 include_directories(include deps/cglm/include deps/glew/include deps/json-c deps/libarchive/libarchive deps/stb)
 
 add_subdirectory(deps)
+
+# Set our compiler flags
+if (MSVC OR ${CMAKE_GENERATOR} MATCHES "NMake")
+	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
+else()
+	set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-discarded-qualifiers -Wno-deprecated-declarations") # It's 2 warnings disabled out of tons of other warnings, chill
+endif()
+
 add_subdirectory(include)
 add_subdirectory(src)
 

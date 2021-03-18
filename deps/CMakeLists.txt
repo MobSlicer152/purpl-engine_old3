@@ -16,4 +16,5 @@ set(ENABLE_TEST OFF CACHE BOOL "Disable tests" FORCE)
 add_subdirectory(cglm)
 add_subdirectory(json-c)
 add_subdirectory(libarchive)
-set_target_properties(archive PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+set_target_properties(archive PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1) # Disable any and all shared libraries
+add_subdirectory(sdl2)

@@ -21,48 +21,41 @@ int main(int argc, char *argv[])
 	NOPE(argc);
 	NOPE(argv);
 
-	/* Initialize a logger */
-	logger = purpl_init_logger(&log_index, PURPL_INFO, PURPL_DEBUG,
-				   "purpl.log");
-	if (!logger) {
-		fprintf(stderr, "Error opening log file: %s\n",
-			strerror(errno));
-		return errno;
-	}
-
-	/* Log a message */
-	purpl_write_log(logger, FILENAME, __LINE__, -1, -1, "a message");
-
 	/* Open up the embedded archive */
 	embed = purpl_load_embed(embed_start, embed_end);
 	if (!embed) {
-		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,
-				"Failed to load embedded archive: %s",
-				strerror(errno));
-		purpl_end_logger(logger, true);
+		fprintf(stderr, "Failed to load embedded archive: %s\n",
+			strerror(errno));
 		return errno;
 	}
 
 	/* Load an app info file */
 	info = purpl_load_app_info(embed, true, "app.json");
 	if (!info) {
-		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,
-				"Failed to load app info: %s", strerror(errno));
-		purpl_end_logger(logger, true);
+		fprintf(stderr, "Failed to load app info: %s\n", strerror(errno));
+		return errno;
+	}
+
+	/* Initialize a logger */
+	logger = purpl_init_logger(&log_index, PURPL_INFO, PURPL_DEBUG, "%s",
+				   info->log);
+	if (!logger) {
+		fprintf(stderr, "Error opening log file: %s\n",
+			strerror(errno));
 		return errno;
 	}
 
 	/* Log the details of the app info */
 	purpl_write_log(
 		logger, FILENAME, __LINE__, -1, -1,
-		"Contents of loaded app info:\nApp name: %s\nLog path: %s\nVersion: %d.%d\n"
-		"Search paths: %s",
+		"Contents of loaded app info:\nApp name: %s\nLog path: %s\n"
+		"Version: %d.%d\nSearch paths: %s",
 		info->name, info->log, info->ver_maj, info->ver_min,
 		info->search_paths);
 
 	/* Load an asset using our newly loaded search paths */
 	test = purpl_load_asset_from_file(info->search_paths, false,
-					  "no u microsoft.txt");
+					  "title.keys"); /* A file that only I have */
 	if (!test) {
 		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,
 				"Error: failed to load asset: %s",

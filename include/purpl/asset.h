@@ -37,7 +37,7 @@ extern "C" {
 #define PURPL_MAX_PATHS 255
 
 /**
- * @brief The character which separates paths in search path lists
+ * @brief The character sequence which separates paths in search path lists
  */
 #define PURPL_PATH_SEP_STR ";"
 
@@ -86,8 +86,8 @@ extern struct purpl_embed *purpl_load_embed(const char *sym_start,
  * @param ar is the libarchive object to load from (for embedded, use `embed->ar`)
  * @param path is the path within the archive to the asset
  * 
- * @return Returns `NULL` or a `purpl_asset` structure. Sets `errno` to ENOENT if
- *  the file is nonexistent or empty and EISDIR if it's a directory.
+ * @return Returns `NULL` or a `purpl_asset` structure. Sets `errno` to `ENOENT` if
+ *  the file is nonexistent or empty and `EISDIR` if it's a directory.
  */
 extern struct purpl_asset *purpl_load_asset_from_archive(struct archive *ar,
 							 const char *path, ...);

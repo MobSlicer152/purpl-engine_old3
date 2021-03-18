@@ -187,7 +187,7 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	}
 
 	/* Map the file */
-	PURPL_RESTORE_ERRNO;
+	errno = 0;
 	PURPL_RETRY_INTR(mapping->data =
 				 mmap(NULL, mapping->len, prot,
 				      (prot - 1) ? MAP_SHARED : MAP_PRIVATE,
@@ -196,18 +196,14 @@ struct purpl_mapping *purpl_map_file(u8 protection, FILE *fp)
 	/* If a permission error arises, downgrade requested access */
 	if (!mapping->data && errno == EPERM) {
 		prot--;
-		PURPL_RESTORE_ERRNO;
+		errno = 0;
 		PURPL_RETRY_INTR(mapping->data = mmap(NULL, mapping->len,
 						      prot - 1, MAP_SHARED, fd2,
 						      0));
 	}
 
-	if (!mapping->data)
-		/* errno is already initialized to something valid */
-		return NULL;
-
 	/* Do some final error checking */
-	if (errno)
+	if (errno || !mapping->data)
 		return NULL;
 #endif /* _WIN32 */
 

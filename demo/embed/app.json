@@ -3,5 +3,8 @@
 	"log_path": "demo.log",
 	"ver_maj": 1,
 	"ver_min": 0,
-	"search_paths": ["E:/purpl-engine", "E:"]
+	"search_paths": [
+		"/media/mobslicer152/Stuff/purpl-engine",
+		"/media/mobslicer152/Stuff"
+	]
 }

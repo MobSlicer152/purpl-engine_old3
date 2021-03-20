@@ -75,7 +75,7 @@ extern "C" {
 /**
  * @brief 10% more convenient `calloc` for arrays
  */
-#define PURPL_CALLOC(count, type) (calloc((count), sizeof(type)))
+#define PURPL_CALLOC(count, type) ((type *)calloc((count), sizeof(type)))
 
 /**
  * @brief Saves `errno` in `err`, use with `PURPL_RESTORE_ERRNO`
@@ -234,7 +234,7 @@ extern void purpl_unmap_file(struct purpl_mapping *mapping);
  *  the pages containing the mapped contents of the file, see `mapping` and `map`)
  */
 extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **mapping,
-				bool map, FILE *fp);
+				bool *map, FILE *fp);
 
 /**
  * @brief Read a file from a path
@@ -250,7 +250,7 @@ extern char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **mapping,
  *  the pages containing the mapped contents of the file, see `mapping` and `map`)
  */
 extern char *purpl_read_file(size_t *len_ret, struct purpl_mapping **mapping,
-			     bool map, const char *path, ...);
+			     bool *map, const char *path, ...);
 
 #ifdef __cplusplus
 }

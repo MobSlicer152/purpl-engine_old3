@@ -4,7 +4,7 @@
 	"ver_maj": 1,
 	"ver_min": 0,
 	"search_paths": [
-		"/media/mobslicer152/Stuff/purpl-engine",
-		"/media/mobslicer152/Stuff"
+		"E:/purpl-engine/demo",
+		"E:/purpl-engine"
 	]
 }

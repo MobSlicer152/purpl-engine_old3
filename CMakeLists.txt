@@ -7,7 +7,7 @@ option(PURPL_BUILD_DEMO "Whether to build the demo" ON)
 option(PURPL_BUILD_TOOLS "Whether to build the engine tools" ON)
 set(PURPL_GRAPHICS_API "OPENGL" CACHE STRING "The graphics API to use")
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_EXTENSIONS TRUE)
 
@@ -29,13 +29,21 @@ endif()
 
 include_directories(include deps/cglm/include deps/glew/include deps/json-c deps/libarchive/libarchive deps/stb)
 
+# Necessary because MSVC is incabable of sane warnings and Werror therefore doesn't work
+if (MSVC)
+	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
+endif()
+
 add_subdirectory(deps)
 
 # Set our compiler flags
-if (MSVC OR ${CMAKE_GENERATOR} MATCHES "NMake")
-	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
-else()
-	set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-discarded-qualifiers -Wno-deprecated-declarations") # It's 2 warnings disabled out of tons of other warnings, chill
+if (NOT MSVC)
+	set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-deprecated-declarations") # It's 2 warnings disabled out of tons of other warnings, chill
+	if (${CMAKE_C_COMPILER_ID} MATCHES "Clang")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-ignored-qualifiers -Wno-incompatible-pointer-types-discards-qualifiers")
+	else()
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-discarded-qualifiers")
+	endif()
 endif()
 
 add_subdirectory(include)
@@ -56,8 +64,8 @@ if (${PURPL_BUILD_DEMO})
 	endif()
 endif()
 
-add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES})
-target_link_libraries(purpl archive_static cglm glew json-c)
+add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES} "src/stb.c")
+target_link_libraries(purpl archive_static cglm glew json-c SDL2::SDL2-static)
 
 if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	target_link_libraries(purpl OpenGL::GL)

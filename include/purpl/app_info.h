@@ -28,6 +28,10 @@
 #include "types.h"
 #include "util.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * A structure representation of `app.json`, which can provide information such
  *  as app name, default log location, and asset search paths to your project.
@@ -72,5 +76,9 @@ extern struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
  *  loaded into the engine
  */
 extern void purpl_free_app_info(struct purpl_app_info *info);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !PURPL_APP_INFO_H */

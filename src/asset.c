@@ -219,6 +219,7 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 					   name_fmt);
 
 		/* Now try opening it, if it succeeds, we're done here */
+		errno = 0;
 		fp = fopen(full_name, "rb");
 		if (!fp) {
 			/* Free the path and continue if we failed */
@@ -250,7 +251,7 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 	}
 	strcpy(asset->name, full_name);
 	asset->data =
-		purpl_read_file_fp(&asset->size, &asset->mapping, map, fp);
+		purpl_read_file_fp(&asset->size, &asset->mapping, &map, fp);
 	if (!asset->data)
 		return NULL;
 	asset->mapped = map;
@@ -269,6 +270,12 @@ void purpl_free_asset(struct purpl_asset *asset)
 	int ___errno;
 
 	PURPL_SAVE_ERRNO(___errno);
+
+	/* Avoid a segfault/double free */
+	if (!asset || !asset->mapping) {
+		errno = EINVAL;
+		return NULL;
+	}
 
 	/* If the file is mapped, deal with that */
 	if (asset->mapped)

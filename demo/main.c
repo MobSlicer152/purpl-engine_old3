@@ -9,72 +9,55 @@ extern char embed_start[];
 extern char embed_end[];
 extern size_t embed_size;
 
-int main(int argc, char *argv[])
+int SDL_main(int argc, char *argv[])
 {
-	ubyte log_index;
-	struct purpl_logger *logger;
-	struct purpl_embed *embed;
-	struct purpl_app_info *info;
+	char *test_name;
 	struct purpl_asset *test;
+	struct purpl_inst *inst;
 
 	/* Unused parameters */
 	NOPE(argc);
 	NOPE(argv);
 
-	/* Open up the embedded archive */
-	embed = purpl_load_embed(embed_start, embed_end);
-	if (!embed) {
-		fprintf(stderr, "Failed to load embedded archive: %s\n",
-			strerror(errno));
-		return errno;
-	}
-
-	/* Load an app info file */
-	info = purpl_load_app_info(embed, true, "app.json");
-	if (!info) {
-		fprintf(stderr, "Failed to load app info: %s\n", strerror(errno));
-		return errno;
-	}
-
-	/* Initialize a logger */
-	logger = purpl_init_logger(&log_index, PURPL_INFO, PURPL_DEBUG, "%s",
-				   info->log);
-	if (!logger) {
-		fprintf(stderr, "Error opening log file: %s\n",
-			strerror(errno));
+	/* Create an instance */
+	inst = purpl_create_inst(true, true, embed_start, embed_end, NULL); /* NULL or -1 means default */
+	if (!inst) {
+		fprintf(stderr, "Error: failed to create instance: %s\n", strerror(errno));
 		return errno;
 	}
 
 	/* Log the details of the app info */
 	purpl_write_log(
-		logger, FILENAME, __LINE__, -1, -1,
+		inst->logger, FILENAME, __LINE__, -1, -1,
 		"Contents of loaded app info:\nApp name: %s\nLog path: %s\n"
 		"Version: %d.%d\nSearch paths: %s",
-		info->name, info->log, info->ver_maj, info->ver_min,
-		info->search_paths);
+		inst->info->name, inst->info->log, inst->info->ver_maj, inst->info->ver_min,
+		inst->info->search_paths);
 
-	/* Load an asset using our newly loaded search paths */
-	test = purpl_load_asset_from_file(info->search_paths, false,
-					  "title.keys"); /* A file that only I have */
-	if (!test) {
-		purpl_write_log(logger, FILENAME, __LINE__, -1, PURPL_FATAL,
-				"Error: failed to load asset: %s",
-				strerror(errno));
-		purpl_end_logger(logger, true);
+	/* Load an asset */
+	test_name = purpl_inst_load_asset_from_file(inst, true, "test.txt");
+	if (!test_name) {
+		purpl_write_log(inst->logger, FILENAME, __LINE__, -1, PURPL_FATAL,
+				"Error: failed to load asset: %s", strerror(errno));
+		free(test_name);
+		purpl_end_inst(inst);
 		return errno;
 	}
 
-	/* Write the file contents */
-	purpl_write_log(logger, FILENAME, __LINE__, -1, -1,
+	/* Put the asset's contents in the log */
+	test = stbds_shget(inst->assets, test_name);
+	if (!test) {
+		purpl_write_log(inst->logger, FILENAME, __LINE__, -1, PURPL_FATAL,
+				"Error: failed to get asset from list: %s", strerror(errno));
+		free(test_name);
+		purpl_end_inst(inst);
+		return errno;
+	}
+	purpl_write_log(inst->logger, FILENAME, __LINE__, -1, -1,
 			"Contents of \"%s\":\n%s", test->name, test->data);
 
-	/* Free all the file structures */
-	purpl_free_asset(test);
-	purpl_free_app_info(info);
-	purpl_free_embed(embed);
-
-	/* Close the logger */
-	purpl_end_logger(logger, true);
+	/* Close the instance */
+	purpl_end_inst(inst);
 
 	return 0;
 }

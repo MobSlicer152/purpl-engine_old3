@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 	FILE *fp;
 	char *input_name;
 	bool have_custom_output;
+	bool mapped = false;
 	char *output_name;
 
 	/* Check arguments */
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Use my handy function to read the input file */
-	input = purpl_read_file(&input_len, NULL, false, "%s", input_name);
+	input = purpl_read_file(&input_len, NULL, &mapped, "%s", input_name);
 	if (!input) {
 		fprintf(stderr, "Error: failed to read file: %s\n",
 			strerror(errno));

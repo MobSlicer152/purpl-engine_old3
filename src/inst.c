@@ -40,7 +40,7 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info, bool start_lo
 	/* Allocate the structure */
 	inst = PURPL_CALLOC(1, struct purpl_inst);
 	if (!inst) {
-		(path_len) ? (void)0 : free(path);
+		(path_len > 0) ? (void)0 : free(path);
 		return NULL;
 	}
 
@@ -48,7 +48,7 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info, bool start_lo
 	if (have_embed) {
 		inst->embed = purpl_load_embed(embed_start, embed_end);
 		if (!inst->embed) {
-			(path_len) ? (void)0 : free(path);
+			(path_len > 0) ? (void)0 : free(path);
 			free(inst);
 			return NULL;
 		}
@@ -57,7 +57,7 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info, bool start_lo
 	/* Load the app info */
 	inst->info = purpl_load_app_info(inst->embed, external, "%s", path);
 	if (!inst->info) {
-		(path_len) ? (void)0 : free(path);
+		(path_len > 0) ? (void)0 : free(path);
 		purpl_free_embed(inst->embed);
 		free(inst);
 		return NULL;
@@ -72,7 +72,7 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info, bool start_lo
 						 PURPL_WARNING, "%s",
 						 inst->info->log);
 		if (!inst->logger) {
-			(path_len) ? (void)0 : free(path);
+			(path_len > 0) ? (void)0 : free(path);
 			purpl_free_app_info(inst->info);
 			purpl_free_embed(inst->embed);
 			free(inst);
@@ -114,13 +114,17 @@ const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map, c
 
 	/* Get the asset */
 	ast = purpl_load_asset_from_file(inst->info->search_paths, map, "%s", path);
-	if (!ast)
+	if (!ast) {
+		(path_len > 0) ? (void)0 : free(path);
 		return NULL;
+	}
 
 	/* Make a new buffer and copy in the name */
 	tmp = PURPL_CALLOC(strlen(ast->name), char);
-	if (!tmp)
+	if (!tmp) {
+		purpl_free_asset(ast);
 		return NULL;
+	}
 	strcpy(tmp, ast->name);
 
 	/* Append the asset to the list */

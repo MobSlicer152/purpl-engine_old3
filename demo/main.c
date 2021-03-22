@@ -4,12 +4,19 @@
 
 #include <purpl/purpl.h>
 
+/* App info name postfix */
+#ifdef __linux__
+#define APP_INFO_POSTFIX "_linux"
+#elif _WIN32
+#define APP_INFO_POSTFIX "_win32"
+#endif
+
 /* Symbols from embedded file */
 extern char embed_start[];
 extern char embed_end[];
 extern size_t embed_size;
 
-int SDL_main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	char *test_name;
 	struct purpl_asset *test;
@@ -20,7 +27,7 @@ int SDL_main(int argc, char *argv[])
 	NOPE(argv);
 
 	/* Create an instance */
-	inst = purpl_create_inst(true, true, embed_start, embed_end, NULL); /* NULL or -1 means default */
+	inst = purpl_create_inst(true, true, embed_start, embed_end, "app" APP_INFO_POSTFIX ".json");
 	if (!inst) {
 		fprintf(stderr, "Error: failed to create instance: %s\n", strerror(errno));
 		return errno;
@@ -28,7 +35,7 @@ int SDL_main(int argc, char *argv[])
 
 	/* Log the details of the app info */
 	purpl_write_log(
-		inst->logger, FILENAME, __LINE__, -1, -1,
+		inst->logger, FILENAME, __LINE__, -1, -1, /* -1 means the default index/level */
 		"Contents of loaded app info:\nApp name: %s\nLog path: %s\n"
 		"Version: %d.%d\nSearch paths: %s",
 		inst->info->name, inst->info->log, inst->info->ver_maj, inst->info->ver_min,

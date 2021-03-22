@@ -4,7 +4,8 @@ set(PURPL_DEMO_EMBED_BASENAME embed)
 set(PURPL_DEMO_EMBED_FOLDER ${CMAKE_CURRENT_LIST_DIR}/${PURPL_DEMO_EMBED_BASENAME})
 set(PURPL_DEMO_EMBED_ARCHIVE ${CMAKE_CURRENT_BINARY_DIR}/${PURPL_DEMO_EMBED_BASENAME}.bin)
 set(PURPL_DEMO_EMBED_FILES
-	app.json
+	app_linux.json
+	app_win32.json
 )
 
 # This is an example of a CMake-integrated way of creating a C source file from a set of files

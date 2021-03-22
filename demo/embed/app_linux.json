@@ -1,0 +1,10 @@
+{
+	"name": "Purpl Engine Demo",
+	"log_path": "demo.log",
+	"ver_maj": 1,
+	"ver_min": 0,
+	"search_paths": [
+		"/mnt/Stuff/purpl-engine/demo",
+		"/mnt/Stuff/purpl-engine"
+	]
+}

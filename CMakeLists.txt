@@ -34,6 +34,13 @@ if (MSVC)
 	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
 endif()
 
+# GLEW needs this
+if (MINGW)
+	set(PURPL_MAKE_PROG mingw32-make)
+else()
+	set(PURPL_MAKE_PROG make)
+endif()
+
 add_subdirectory(deps)
 
 # Set our compiler flags

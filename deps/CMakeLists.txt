@@ -3,8 +3,13 @@ set(CGLM_SHARED OFF CACHE BOOL "" FORCE)
 set(CGLM_STATIC ON CACHE BOOL "" FORCE)
 
 if(${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
-	set(GLEW_SOURCES glew/src/glew.c)
-	add_library(glew STATIC ${GLEW_SOURCES})
+	set(GLEW_SOURCE ${CMAKE_SOURCE_DIR}/deps/glew/src/glew.c)
+	if (NOT EXISTS ${GLEW_SOURCE})
+		add_custom_command(OUTPUT ${GLEW_SOURCE}
+				   COMMAND ${PURPL_MAKE_PROG} -C ${CMAKE_SOURCE_DIR}/deps/glew/auto
+				   VERBATIM)
+	endif()
+	add_library(glew STATIC ${GLEW_SOURCE})
 endif()
 
 set(ENABLE_CAT OFF CACHE BOOL "Disable bsdcat" FORCE)

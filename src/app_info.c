@@ -47,12 +47,12 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 	/* Load the JSON file */
 	alw_ext = allow_external;
 	if (!embed || alw_ext) {
-		info->json = purpl_load_asset_from_file(".", false, "%s",
-							path_fmt);
+		info->json =
+			purpl_load_asset_from_file(".", false, "%s", path_fmt);
 		if (!info->json)
 			alw_ext = false;
 	}
-	
+
 	if (!alw_ext) {
 		info->json = purpl_load_asset_from_archive(embed->ar, "%s",
 							   path_fmt);
@@ -63,6 +63,7 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 	/* Read the root key from the file */
 	info->root = json_tokener_parse(info->json->data);
 	if (!info->root) {
+		purpl_free_asset(info->json);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -70,26 +71,31 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 	/* Read the rest of the keys */
 	name = json_object_object_get(info->root, "name");
 	if (!name) {
+		purpl_free_asset(info->json);
 		errno = EINVAL;
 		return NULL;
 	}
 	log = json_object_object_get(info->root, "log_path");
 	if (!log) {
+		purpl_free_asset(info->json);
 		errno = EINVAL;
 		return NULL;
 	}
 	ver_maj = json_object_object_get(info->root, "ver_maj");
 	if (!ver_maj) {
+		purpl_free_asset(info->json);
 		errno = EINVAL;
 		return NULL;
 	}
 	ver_min = json_object_object_get(info->root, "ver_min");
 	if (!ver_min) {
+		purpl_free_asset(info->json);
 		errno = EINVAL;
 		return NULL;
 	}
 	search_paths = json_object_object_get(info->root, "search_paths");
 	if (!search_paths) {
+		purpl_free_asset(info->json);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -100,23 +106,32 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 	    json_object_get_type(ver_maj) != json_type_int ||
 	    json_object_get_type(ver_min) != json_type_int ||
 	    json_object_get_type(search_paths) != json_type_array) {
+		purpl_free_asset(info->json);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	/* Parse the non-array stuff */
 	info->name = json_object_get_string(name);
-	if (errno)
+	if (errno) {
+		purpl_free_asset(info->json);
 		return NULL;
+	}
 	info->log = json_object_get_string(log);
-	if (errno)
+	if (errno) {
+		purpl_free_asset(info->json);
 		return NULL;
+	}
 	info->ver_maj = json_object_get_int(ver_maj);
-	if (errno)
+	if (errno) {
+		purpl_free_asset(info->json);
 		return NULL;
+	}
 	info->ver_min = json_object_get_int(ver_min);
-	if (errno)
+	if (errno) {
+		purpl_free_asset(info->json);
 		return NULL;
+	}
 
 	/* Figure out how much space to allocate */
 	n_paths = json_object_array_length(search_paths);
@@ -124,13 +139,17 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 	for (i = 0; i < n_paths; i++) {
 		/* Get a pointer to the current element */
 		obj = json_object_array_get_idx(search_paths, i);
-		if (!obj)
+		if (!obj) {
+			purpl_free_asset(info->json);
 			return NULL;
+		}
 
 		/* Get a string */
 		cur = json_object_get_string(obj);
-		if (errno)
+		if (errno) {
+			purpl_free_asset(info->json);
 			return NULL;
+		}
 
 		/* Get its length */
 		paths_len += strlen(cur);
@@ -148,13 +167,17 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 	for (i = 0; i < n_paths; i++) {
 		/* Get a pointer to the current element */
 		obj = json_object_array_get_idx(search_paths, i);
-		if (!obj)
+		if (!obj) {
+			purpl_free_asset(info->json);
 			return NULL;
+		}
 
 		/* Get a string */
 		cur = json_object_get_string(obj);
-		if (errno)
+		if (errno) {
+			purpl_free_asset(info->json);
 			return NULL;
+		}
 
 		/* Copy it to the buffer */
 		j += sprintf(info->search_paths + j, "%s", cur);

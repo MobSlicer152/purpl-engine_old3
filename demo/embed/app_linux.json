@@ -4,7 +4,7 @@
 	"ver_maj": 1,
 	"ver_min": 0,
 	"search_paths": [
-		"/mnt/Stuff/purpl-engine/demo",
-		"/mnt/Stuff/purpl-engine"
+		"/home/mobslicer152/projects/purpl-engine/demo",
+		"/home/mobslicer152/projects/purpl-engine"
 	]
 }

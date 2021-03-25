@@ -1,8 +1,8 @@
 #include "purpl/purpl.h"
 
-struct purpl_inst *purpl_create_inst(bool allow_external_app_info, bool start_log,
-			      char *embed_start, char *embed_end,
-			      char *app_info_path, ...)
+struct purpl_inst *purpl_create_inst(bool allow_external_app_info,
+				     bool start_log, char *embed_start,
+				     char *embed_end, char *app_info_path, ...)
 {
 	struct purpl_inst *inst;
 	bool external;
@@ -90,7 +90,83 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info, bool start_lo
 	return inst;
 }
 
-const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map, const char *name, ...)
+int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
+			     int width, int height, const char *title, ...)
+{
+	va_list args;
+	int w;
+	int h;
+	char *title_fmt;
+	size_t title_len;
+	int err;
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
+
+	/* Check parameters */
+	if (!inst || width < -1 || height < -1 || !title) {
+		errno = EINVAL;
+		return errno;
+	}
+
+	/* Avoid orphaning a window's memory */
+	if (inst->wnd || inst->renderer) {
+		errno = EEXIST;
+		return errno;
+	}
+
+	/* Format the title */
+	va_start(args, title);
+	title_fmt = purpl_fmt_text_va(&title_len, title, args);
+	va_end(args);
+
+	/* If necessary, get default values for width/height */
+	w = (width == -1) ? 1024 : width;
+	h = (width == -1) ? 600 : height;
+
+	/* Create a window through SDL */
+	err = SDL_CreateWindowAndRenderer(
+		w, h,
+		SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
+				((fullscreen) ? 0 : SDL_WINDOW_FULLSCREEN),
+		&inst->wnd, &inst->renderer);
+	if (err < 0) {
+		errno = ENOMEM; /* This is typically the cause */
+		return errno;
+	}
+
+	/* Set our window title */
+	SDL_SetWindowTitle(inst->wnd, title_fmt);
+	
+	/* Free our title format pointer */
+	(title_len < 0) ? (void)0 : free(title_fmt);
+
+	PURPL_RESTORE_ERRNO(___errno);
+
+	return 0;
+}
+
+void purpl_inst_destroy_window(struct purpl_inst *inst)
+{
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
+
+	/* Avoid a segfault */
+	if (!inst) {
+		errno = EINVAL;
+		return;
+	}
+
+	/* Destroy the renderer and then the window */
+	SDL_DestroyRenderer(inst->renderer);
+	SDL_DestroyWindow(inst->wnd);
+
+	PURPL_RESTORE_ERRNO(___errno);
+}
+
+const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map,
+					    const char *name, ...)
 {
 	va_list args;
 	char *path;
@@ -113,7 +189,8 @@ const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map, c
 	va_end(args);
 
 	/* Get the asset */
-	ast = purpl_load_asset_from_file(inst->info->search_paths, map, "%s", path);
+	ast = purpl_load_asset_from_file(inst->info->search_paths, map, "%s",
+					 path);
 	if (!ast) {
 		(path_len > 0) ? (void)0 : free(path);
 		return NULL;
@@ -187,7 +264,7 @@ void purpl_end_inst(struct purpl_inst *inst)
 	stbds_shfree(inst->assets);
 
 	/* Make sure the window is closed */
-	SDL_DestroyWindow(inst->wnd);
+	purpl_inst_destroy_window(inst);
 
 	/* Free the structure */
 	free(inst);

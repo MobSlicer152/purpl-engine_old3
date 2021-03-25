@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Write the start of the array */
-	printf("Writing data to \"%s\"...\n", output_name);
+	printf("Writing data to %s...\n", output_name);
 	i = fprintf(fp, "const unsigned char %s_start[] = {\n\t", sym_base);
 	if (!i) {
 		fprintf(stderr, "Error: couldn't write to file: %s\n",
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 	free(input);
 	
 	/* And we're done */
-	printf("Done! Output file is \"%s\", containing %zu bytes.\n", output_name, k);
+	printf("Done! Output file is %s, containing %zu bytes.\n", output_name, k);
 	if (!have_custom_output)
 		free(output_name);
 	return 0;

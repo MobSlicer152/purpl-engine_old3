@@ -234,6 +234,10 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 
 	/* Free some shit */
 	(name_len > 0) ? (void)0 : free(name_fmt);
+	for (i = 0; i < path_count; i++) {
+		if (paths[i])
+			free(paths[i]);
+	}
 	free(paths);
 
 	/* Now we can finally allocate our structure */
@@ -274,7 +278,7 @@ void purpl_free_asset(struct purpl_asset *asset)
 	/* Avoid a segfault/double free */
 	if (!asset || !asset->mapping) {
 		errno = EINVAL;
-		return NULL;
+		return;
 	}
 
 	/* If the file is mapped, deal with that */

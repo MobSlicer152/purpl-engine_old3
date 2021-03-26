@@ -25,7 +25,9 @@ int main(int argc, char *argv[])
 	char *test_name;
 	struct purpl_asset *test;
 	struct purpl_inst *inst;
+	bool have_ast = false;
 	double runtime;
+	char runtime_s[8];
 
 	/* Unused parameters */
 	NOPE(argc);
@@ -53,26 +55,28 @@ int main(int argc, char *argv[])
 	test_name = purpl_inst_load_asset_from_file(inst, true, "test.txt");
 	if (!test_name) {
 		purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1,
-				PURPL_FATAL, "Error: failed to load asset: %s",
+				PURPL_ERROR, "Error: failed to load asset: %s",
 				strerror(errno));
-		free(test_name);
-		purpl_end_inst(inst);
-		return errno;
+		have_ast = false;
+	} else {
+		have_ast = true;
 	}
 
-	/* Put the asset's contents in the log */
-	test = stbds_shget(inst->assets, test_name);
-	if (!test) {
-		purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1,
-				PURPL_FATAL,
-				"Error: failed to get asset from list: %s",
-				strerror(errno));
-		free(test_name);
-		purpl_end_inst(inst);
-		return errno;
+	if (have_ast) {
+		/* Put the asset's contents in the log */
+		test = stbds_shget(inst->assets, test_name);
+		if (!test) {
+			purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1,
+					PURPL_FATAL,
+					"Error: failed to get asset from list: %s",
+					strerror(errno));
+			free(test_name);
+			purpl_end_inst(inst);
+			return errno;
+		}
+		purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1, -1,
+				"Contents of \"%s\":\n%s", test->name, test->data);
 	}
-	purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1, -1,
-			"Contents of \"%s\":\n%s", test->name, test->data);
 
 	/* Create a window (yay it took so long to get here) */
 	err = purpl_inst_create_window(inst, true, -1, -1, "%s, version %d.%d",
@@ -87,13 +91,23 @@ int main(int argc, char *argv[])
 		purpl_end_inst(inst);
 		return errno;
 	}
+	
 
 	/* Run the main game loop */
 	runtime = purpl_inst_run(inst, NULL, frame) / 1000.0;
+	strcpy(runtime_s, "seconds");
+	if (runtime >= 60) {
+		strcpy(runtime_s, "minutes");
+		runtime /= 60;
+	}
+	if (runtime >= 60) {
+		strcpy(runtime_s, "hours");
+		runtime /= 60;
+	}
 
 	/* Log the amount of time we ran for */
 	purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1, -1,
-			"Total runtime: %0.3lf s", runtime);
+			"Total runtime: %0.3lf %s", runtime, runtime_s);
 
 	/* Close the instance */
 	purpl_end_inst(inst);

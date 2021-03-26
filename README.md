@@ -21,7 +21,7 @@ These are some really awesome libraries that have served me well in my past atte
 - [GLEW](https://github.com/nigels-com/glew) is an amazing OpenGL loader
 - [json-c](https://github.com/json-c/json-c) is good for parsing JSON files, which are very human readable/writable and therefore used frequently by the engine.
 - [libarchive](https://github.com/libarchive/libarchive) is a great library for parsing archives
-- [SDL 2](https://github.com/libsdl.org) is an amazing library for abstracting window creation, audio, and input between platforms
+- [SDL 2](https://libsdl.org) is an amazing library for abstracting window creation, audio, and input between platforms
 - [stb](https://github.com/nothings/stb) is a collection of wonderful open source libraries contained in single header files
 
 <sub>Sorry about the profanity. Microsoft is annoying.</sub>

@@ -104,7 +104,9 @@ extern "C" {
 /**
  * @brief The base name and extension of the current file
  */
-#define FILENAME PURPL_GET_BASENAME(__FILE__)
+#ifndef __FILENAME__
+#define __FILENAME__ PURPL_GET_BASENAME(__FILE__)
+#endif
 
 /**
  * @brief The specified parameter is unused
@@ -138,7 +140,7 @@ extern "C" {
 /**
  * @brief Holds information about a mapped file
  * 
- * DO NOT USE `data` or `len` DIRECTLY IF THEY MIGHT GET MODIFIED!
+ * DO NOT USE `data` OR `len` DIRECTLY IF THEY MIGHT GET MODIFIED!
  */
 struct purpl_mapping {
 	void *data; /**< The actual mapped file */
@@ -164,8 +166,10 @@ struct purpl_mapping {
  *  a buffer of either the necessary length for the formatted string or a
  *  large value that should be good enough as a fallback.  Always `free` the buffer,
  *  unless len_ret is -1 and `fmt` can't be freed in that way.
+ * 
+ * Example of freeing buffer: `(len < 0) ? (void)0 : free(ptr);`
  */
-extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
+extern char *purpl_fmt_text_va(s64 *len_ret, const char *fmt, va_list args);
 
 /**
  * @brief Formats text as `sprintf` would
@@ -180,8 +184,10 @@ extern char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args);
  *  large enough for the formatted message, which is more convenient than
  *  `sprintf`. Always `free` the buffer, unless len_ret is -1 and `fmt`
  *  can't be freed in that way.
+ * 
+ * Example of freeing buffer: `(len < 0) ? (void)0 : free(ptr);`
  */
-extern char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...);
+extern char *purpl_fmt_text(s64 *len_ret, const char *fmt, ...);
 
 /**
  * @brief Maps a file into the process's virtual memory using the

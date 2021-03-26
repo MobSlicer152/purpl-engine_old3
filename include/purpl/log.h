@@ -103,7 +103,7 @@ extern int purpl_open_log(struct purpl_logger *logger, s8 max_level,
  * @brief Writes a message to a log
  * 
  * @param logger is the logger structure to use
- * @param file should be the `FILENAME` macro
+ * @param file should be the `__FILENAME__` macro
  * @param line should be the `__LINE__` macro
  * @param index is the index of the log to write to
  * @param level is the message level

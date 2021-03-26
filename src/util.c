@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
-char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args)
+char *purpl_fmt_text_va(s64 *len_ret, const char *fmt, va_list args)
 {
-	size_t len;
+	s64 len;
 	char *buf;
 	va_list ap;
 	int ___errno;
@@ -54,7 +54,7 @@ char *purpl_fmt_text_va(size_t *len_ret, const char *fmt, va_list args)
 	return buf;
 }
 
-char *purpl_fmt_text(size_t *len_ret, const char *fmt, ...)
+char *purpl_fmt_text(s64 *len_ret, const char *fmt, ...)
 {
 	va_list args;
 	char *fmt_ptr;
@@ -343,7 +343,7 @@ char *purpl_read_file(size_t *len_ret, struct purpl_mapping **info, bool *map,
 {
 	va_list args;
 	char *path_fmt;
-	size_t path_len;
+	s64 path_len;
 	FILE *fp;
 	int ___errno;
 

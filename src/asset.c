@@ -61,7 +61,7 @@ struct purpl_asset *purpl_load_asset_from_archive(struct archive *ar,
 	int err;
 	va_list args;
 	char *path_fmt;
-	size_t path_len;
+	s64 path_len;
 	int ___errno;
 
 	PURPL_SAVE_ERRNO(___errno);
@@ -150,9 +150,9 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 	FILE *fp;
 	va_list args;
 	char *name_fmt;
-	size_t name_len;
+	s64 name_len;
 	char *full_name;
-	size_t full_name_len;
+	s64 full_name_len;
 	char **paths;
 	char *tmp;
 	char *paths_full;
@@ -234,10 +234,6 @@ struct purpl_asset *purpl_load_asset_from_file(const char *search_paths,
 
 	/* Free some shit */
 	(name_len > 0) ? (void)0 : free(name_fmt);
-	for (i = 0; i < path_count; i++) {
-		if (paths[i])
-			free(paths[i]);
-	}
 	free(paths);
 
 	/* Now we can finally allocate our structure */

@@ -11,7 +11,7 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 	struct purpl_app_info *info;
 	va_list args;
 	char *path_fmt;
-	size_t path_len;
+	s64 path_len;
 	struct json_object *name;
 	struct json_object *log;
 	struct json_object *ver_maj;
@@ -21,7 +21,7 @@ struct purpl_app_info *purpl_load_app_info(struct purpl_embed *embed,
 	char *cur;
 	bool alw_ext;
 	size_t n_paths;
-	size_t paths_len;
+	s64 paths_len;
 	size_t i;
 	ptrdiff_t j;
 	int ___errno;

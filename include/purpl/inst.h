@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include <SDL.h>
 
@@ -43,6 +44,7 @@ struct purpl_inst {
 	struct purpl_asset_list
 		*assets; /**< The list of assets opened, see `stb_ds.h` */
 	struct SDL_Window *wnd; /**< The SDL window */
+	struct SDL_Surface *surf; /**< The surface of the window */
 	struct SDL_Renderer *renderer; /**< The SDL renderer (OpenGL stuff) */
 };
 
@@ -85,11 +87,21 @@ extern int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 				    ...);
 
 /**
- * @brief Close an instance's window if one is open
+ * @brief Run `inst`
  * 
- * @param inst is the instance whose window is to be closed
+ * @param inst is the instance to run
+ * @param user is optional user data to be passed to the `frame` callback
+ * @param frame is a callback that is called each frame after window events are
+ *  processed and before the renderer is updated
+ * 
+ * @return Returns the amount of time passed since the start of the function.
+ * 
+ * It is recommended to run this on a separate thread.
  */
-extern void purpl_inst_destroy_window(struct purpl_inst *inst);
+extern uint purpl_inst_run(struct purpl_inst *inst, void *user,
+			     void(frame)(struct purpl_inst *inst, SDL_Event e,
+					 uint delta,
+				       void *user));
 
 /**
  * @brief Load an asset from a file into the instance's assset list
@@ -100,8 +112,9 @@ extern void purpl_inst_destroy_window(struct purpl_inst *inst);
  * 
  * @return Returns the full path to the asset, to access it within the list.
  */
-extern const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map,
-					   const char *name, ...);
+extern const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst,
+						   bool map, const char *name,
+						   ...);
 
 /**
  * @brief Free an asset loaded with one of the instance-based functions
@@ -113,6 +126,13 @@ extern const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool
  *  -free type of thing) 
  */
 extern void purpl_inst_free_asset(struct purpl_inst *inst, const char *name);
+
+/**
+ * @brief Close an instance's window if one is open
+ * 
+ * @param inst is the instance whose window is to be closed
+ */
+extern void purpl_inst_destroy_window(struct purpl_inst *inst);
 
 /**
  * @brief End an instance

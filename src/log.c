@@ -11,7 +11,7 @@ struct purpl_logger *purpl_init_logger(u8 *first_index_ret, s8 default_level,
 	struct purpl_logger *logger;
 	char *first;
 	va_list args;
-	size_t len;
+	s64 len;
 	u8 first_index;
 	int ___errno;
 
@@ -63,7 +63,7 @@ int purpl_open_log(struct purpl_logger *logger, s8 max_level, const char *path,
 {
 	u8 index;
 	char *fmt_path;
-	size_t len;
+	s64 len;
 	va_list args;
 	s8 max;
 	int ___errno;
@@ -125,8 +125,8 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 	char *msg;
 	u8 idx;
 	u8 lvl;
-	size_t fmt_len;
-	size_t msg_len;
+	s64 fmt_len;
+	s64 msg_len;
 	size_t written;
 	FILE *fp;
 	va_list args;
@@ -266,12 +266,13 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 
 s8 purpl_set_max_level(struct purpl_logger *logger, u8 index, u8 level)
 {
-	u8 idx = index & 0x3F;
+	u8 idx;
 	int ___errno;
 
 	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check arguments */
+	idx = index & 0x3F;
 	if (!logger || idx > logger->nlogs) {
 		errno = EINVAL;
 		return -1;
@@ -351,7 +352,7 @@ void purpl_end_logger(struct purpl_logger *logger, _Bool write_goodbye)
 			else if (now->tm_hour >= 18)
 				strcat(goodbye, "night.");
 
-			purpl_write_log(logger, FILENAME, __LINE__, i,
+			purpl_write_log(logger, __FILENAME__, __LINE__, i,
 					logger->max_level[i], "%s", goodbye);
 		}
 

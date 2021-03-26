@@ -9,7 +9,7 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info,
 	bool have_embed;
 	va_list args;
 	char *path;
-	size_t path_len;
+	s64 path_len;
 	int ___errno;
 
 	PURPL_SAVE_ERRNO(___errno);
@@ -80,9 +80,12 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info,
 		}
 
 		/* State that the logger has started */
-		purpl_write_log(inst->logger, FILENAME, __LINE__, -1, -1,
+		purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1, -1,
 				"Logger started");
 	}
+
+	/* Properly initialize SDL */
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
 
 	PURPL_RESTORE_ERRNO(___errno);
 
@@ -97,7 +100,7 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	int w;
 	int h;
 	char *title_fmt;
-	size_t title_len;
+	s64 title_len;
 	int err;
 	int ___errno;
 
@@ -128,7 +131,8 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	err = SDL_CreateWindowAndRenderer(
 		w, h,
 		SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
-				((fullscreen) ? 0 : SDL_WINDOW_FULLSCREEN),
+			/* This is really simple but feels really big brain */
+			((fullscreen) ? SDL_WINDOW_FULLSCREEN : 0),
 		&inst->wnd, &inst->renderer);
 	if (err < 0) {
 		errno = ENOMEM; /* This is typically the cause */
@@ -137,7 +141,10 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 
 	/* Set our window title */
 	SDL_SetWindowTitle(inst->wnd, title_fmt);
-	
+
+	/* Get the window surface */
+	inst->surf = SDL_GetWindowSurface(inst->wnd);
+
 	/* Free our title format pointer */
 	(title_len < 0) ? (void)0 : free(title_fmt);
 
@@ -146,23 +153,62 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	return 0;
 }
 
-void purpl_inst_destroy_window(struct purpl_inst *inst)
+uint purpl_inst_run(struct purpl_inst *inst, void *user,
+		    void(frame)(struct purpl_inst *inst, SDL_Event e, uint delta,
+				void *user))
 {
+	uint delta;
+	uint beginning;
+	uint last;
+	uint now;
+	SDL_Event e;
 	int ___errno;
 
 	PURPL_SAVE_ERRNO(___errno);
 
-	/* Avoid a segfault */
-	if (!inst) {
+	/* Check arguments */
+	if (!inst || !frame) {
 		errno = EINVAL;
-		return;
+		return -1;
 	}
 
-	/* Destroy the renderer and then the window */
-	SDL_DestroyRenderer(inst->renderer);
-	SDL_DestroyWindow(inst->wnd);
+	/* Get the time */
+	beginning = SDL_GetTicks();
+
+	/* Start the loop */
+	inst->running = true;
+	last = beginning;
+	while (inst->running) {
+		/* Process events */
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT)
+				inst->running = false;
+		}
+
+		/* Clear before drawing anything */
+		SDL_SetRenderDrawColor(inst->renderer, 0x0, 0x0, 0x0, 0xFF);
+		SDL_RenderClear(inst->renderer);
+
+		/* Get the time */
+		now = SDL_GetTicks();
+
+		/* Call the frame function */
+		delta = now - last;
+		frame(inst, e, delta, user);
+
+		/* Get the time again */
+		last = now;
+		now = SDL_GetTicks();
+
+		/* Update the window surface */
+		SDL_RenderFlush(inst->renderer);
+		SDL_RenderPresent(inst->renderer);
+	}
 
 	PURPL_RESTORE_ERRNO(___errno);
+	
+	/* We're done now */
+	return now - beginning;
 }
 
 const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map,
@@ -170,7 +216,7 @@ const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map,
 {
 	va_list args;
 	char *path;
-	size_t path_len;
+	s64 path_len;
 	struct purpl_asset *ast;
 	char *tmp;
 	int ___errno;
@@ -204,7 +250,7 @@ const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map,
 	}
 	strcpy(tmp, ast->name);
 
-	/* Append the asset to the list */
+	/* Append the asset to the lis4t */
 	stbds_shput(inst->assets, tmp, ast);
 
 	PURPL_RESTORE_ERRNO(___errno);
@@ -234,6 +280,25 @@ void purpl_inst_free_asset(struct purpl_inst *inst, const char *name)
 	/* Free the asset and its name */
 	free(name);
 	purpl_free_asset(ast);
+
+	PURPL_RESTORE_ERRNO(___errno);
+}
+
+void purpl_inst_destroy_window(struct purpl_inst *inst)
+{
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
+
+	/* Avoid a segfault */
+	if (!inst) {
+		errno = EINVAL;
+		return;
+	}
+
+	/* Destroy the renderer and then the window */
+	SDL_DestroyRenderer(inst->renderer);
+	SDL_DestroyWindow(inst->wnd);
 
 	PURPL_RESTORE_ERRNO(___errno);
 }

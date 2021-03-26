@@ -3,13 +3,14 @@ set(CGLM_SHARED OFF CACHE BOOL "" FORCE)
 set(CGLM_STATIC ON CACHE BOOL "" FORCE)
 
 if(${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
-	set(GLEW_SOURCE ${CMAKE_SOURCE_DIR}/deps/glew/src/glew.c)
-	if (NOT EXISTS ${GLEW_SOURCE})
-		add_custom_command(OUTPUT ${GLEW_SOURCE}
-				   COMMAND ${PURPL_MAKE_PROG} -C ${CMAKE_SOURCE_DIR}/deps/glew/auto
+	set(PURPL_GLEW_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/glew-${PURPL_GLEW_VER}/src/glew.c)
+	if (NOT EXISTS ${PURPL_GLEW_SOURCE})
+		add_custom_command(OUTPUT ${PURPL_GLEW_SOURCE}
+				   COMMAND curl -fsGL https://github.com/nigels-com/glew/releases/download/glew-${PURPL_GLEW_VER}/glew-${PURPL_GLEW_VER}.zip -o ${CMAKE_CURRENT_BINARY_DIR}/glew.zip
+				   COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_COMMAND} -E tar xvf ${CMAKE_CURRENT_BINARY_DIR}/glew.zip --format=zip
 				   VERBATIM)
 	endif()
-	add_library(glew STATIC ${GLEW_SOURCE})
+	add_library(glew STATIC ${PURPL_GLEW_SOURCE})
 endif()
 
 set(ENABLE_CAT OFF CACHE BOOL "Disable bsdcat" FORCE)
@@ -22,5 +23,4 @@ add_subdirectory(cglm)
 add_subdirectory(json-c)
 add_subdirectory(libarchive)
 set_target_properties(archive PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1) # Disable any and all shared libraries
-set_target_properties(json_parse PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 add_subdirectory(sdl2)

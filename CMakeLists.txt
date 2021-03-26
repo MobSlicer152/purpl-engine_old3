@@ -27,18 +27,12 @@ if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	include_directories(${OPENGL_INCLUDE_DIR})
 endif()
 
-include_directories(include deps/cglm/include deps/glew/include deps/json-c deps/libarchive/libarchive deps/stb)
+set(PURPL_GLEW_VER 2.2.0)
+include_directories(include deps/cglm/include ${CMAKE_BINARY_DIR}/deps/glew-${PURPL_GLEW_VER}/include deps/json-c deps/libarchive/libarchive deps/stb)
 
 # Necessary because MSVC is incabable of sane warnings and Werror therefore doesn't work
 if (MSVC)
 	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
-endif()
-
-# GLEW needs this
-if (MINGW)
-	set(PURPL_MAKE_PROG mingw32-make)
-else()
-	set(PURPL_MAKE_PROG make)
 endif()
 
 add_subdirectory(deps)

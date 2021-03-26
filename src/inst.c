@@ -101,6 +101,7 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	int h;
 	char *title_fmt;
 	s64 title_len;
+	SDL_Rect disp;
 	int err;
 	int ___errno;
 
@@ -124,15 +125,21 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	va_end(args);
 
 	/* If necessary, get default values for width/height */
-	w = (width == -1) ? 1024 : width;
-	h = (width == -1) ? 600 : height;
+	if (!fullscreen) {
+		w = (width == -1) ? 1024 : width;
+		h = (width == -1) ? 600 : height;
+	} else {
+		SDL_GetDisplayBounds(0, &disp);
+		w = disp.w;
+		h = disp.h;
+	}
 
 	/* Create a window through SDL */
 	err = SDL_CreateWindowAndRenderer(
 		w, h,
 		SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
 			/* This is really simple but feels really big brain */
-			((fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0),
+			((fullscreen) ? SDL_WINDOW_BORDERLESS : 0),
 		&inst->wnd, &inst->renderer);
 	if (err < 0) {
 		errno = ENOMEM; /* This is typically the cause */

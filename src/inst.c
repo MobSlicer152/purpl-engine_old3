@@ -132,7 +132,7 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 		w, h,
 		SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
 			/* This is really simple but feels really big brain */
-			((fullscreen) ? SDL_WINDOW_FULLSCREEN : 0),
+			((fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0),
 		&inst->wnd, &inst->renderer);
 	if (err < 0) {
 		errno = ENOMEM; /* This is typically the cause */

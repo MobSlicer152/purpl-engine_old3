@@ -109,7 +109,7 @@ extern "C" {
 #endif
 
 /**
- * @brief The specified parameter is unused
+ * @brief The specified value/parameter is unused
  */
 #define NOPE(param) (void)(param)
 

@@ -145,6 +145,10 @@ int main(int argc, char *argv[])
 	free(log_path);
 	(log_mapped) ? purpl_unmap_file(log_map) :
 			     free(log_cont);
+
+	/* Pause */
+	printf("\n(Press Enter to exit)");
+	NOPE(getc(stdin));
 #endif
 
 	return 0;

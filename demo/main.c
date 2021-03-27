@@ -28,6 +28,13 @@ int main(int argc, char *argv[])
 	bool have_ast = false;
 	double runtime;
 	char runtime_s[8];
+#ifndef _NDEBUG
+	char *log_path;
+	char *log_cont;
+	size_t log_len;
+	struct purpl_mapping *log_map;
+	bool log_mapped = true;
+#endif
 
 	/* Unused parameters */
 	NOPE(argc);
@@ -109,8 +116,36 @@ int main(int argc, char *argv[])
 	purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1, -1,
 			"Total runtime: %0.3lf %s", runtime, runtime_s);
 
+#ifndef _NDEBUG
+	/* Save our log's filename */
+	log_path = PURPL_CALLOC(strlen(inst->info->log) + 1, char);
+	if (!log_path) {
+		fprintf(stderr, "Error: failed to save log path: %s\n",
+			strerror(errno));
+		return errno;
+	}
+	strcpy(log_path, inst->info->log);
+#endif
+
 	/* Close the instance */
 	purpl_end_inst(inst);
+
+#ifndef _NDEBUG
+	/* Read the contents of the log */
+	log_cont = purpl_read_file(&log_len, &log_map, &log_mapped, "%s", log_path);
+	if (!log_cont) {
+		fprintf(stderr, "Error: failed to read file: %s\n", strerror(errno));
+		return errno;
+	}
+
+	/* Print the log's contents */
+	printf("Log contents:\n%s", log_cont);
+
+	/* Free stuff */
+	free(log_path);
+	(log_mapped) ? purpl_unmap_file(log_map) :
+			     free(log_cont);
+#endif
 
 	return 0;
 }
@@ -138,15 +173,12 @@ void frame(struct purpl_inst *inst, SDL_Event e, uint delta, void *user)
 	total += delta;
 	if (total >= 1000) {
 		total = 0;
-		if (yellow)
-			yellow = false;
-		else
-			yellow = true;
+		yellow = !yellow;
 	}
 	if (yellow)
 		SDL_SetRenderDrawColor(inst->renderer, 0xFF, 0xFF, 0x0, 0xFF);
 	else
-		SDL_SetRenderDrawColor(inst->renderer, 0xCF, 0x0, 0xFF, 0xFF);
+		SDL_SetRenderDrawColor(inst->renderer, 0x9F, 0x0, 0xFF, 0xFF);
 
 	/* Fill the rectangle */
 	SDL_RenderFillRect(inst->renderer, &rect);

@@ -274,7 +274,7 @@ char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **mapping,
 	}
 
 	/* Determine whether to map the file */
-	will_map = map;
+	will_map = *map;
 
 	/*
 	 * If something goes wrong, set map to false so that
@@ -316,7 +316,7 @@ char *purpl_read_file_fp(size_t *len_ret, struct purpl_mapping **mapping,
 		/* Ensure it's terminated */
 		file[len] = 0;
 
-		/* Put fp bainfopping is NULL */
+		/* Make sure mapping is NULL */
 		mapping = NULL;
 	}
 

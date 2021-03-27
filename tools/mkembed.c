@@ -97,28 +97,30 @@ int main(int argc, char *argv[])
 		k += j;
 
 		/* Ensure we don't exceed 80 columns/line :) */
-		if (j >= 70) {
-			j = 0;
-			errno = 0;
-			fprintf(fp, "\n\t");
+		if (i < input_len - 1) {
+			if (j >= 70) {
+				j = 0;
+				errno = 0;
+				fprintf(fp, "\n\t");
 
-			/* Check for an error again */
-			if (errno) {
-				fprintf(stderr,
-					"Error: couldn't write to file: %s\n",
-					strerror(errno));
-				return errno;
-			}
-		} else {
-			errno = 0;
-			j += fprintf(fp, " ");
+				/* Check for an error again */
+				if (errno) {
+					fprintf(stderr,
+						"Error: couldn't write to file: %s\n",
+						strerror(errno));
+					return errno;
+				}
+			} else {
+				errno = 0;
+				j += fprintf(fp, " ");
 
-			/* Check for an error again */
-			if (errno) {
-				fprintf(stderr,
-					"Error: couldn't write to file: %s\n",
-					strerror(errno));
-				return errno;
+				/* Check for an error again */
+				if (errno) {
+					fprintf(stderr,
+						"Error: couldn't write to file: %s\n",
+						strerror(errno));
+					return errno;
+				}
 			}
 		}
 	}
@@ -141,9 +143,10 @@ int main(int argc, char *argv[])
 	/* Close the file and free input */
 	fclose(fp);
 	free(input);
-	
+
 	/* And we're done */
-	printf("Done! Output file is %s, containing %zu bytes.\n", output_name, k);
+	printf("Done! Output file is %s, containing %zu bytes.\n", output_name,
+	       k);
 	if (!have_custom_output)
 		free(output_name);
 	return 0;

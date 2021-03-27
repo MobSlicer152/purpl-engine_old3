@@ -102,6 +102,7 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	char *title_fmt;
 	s64 title_len;
 	SDL_Rect disp;
+	uint idx;
 	int err;
 	int ___errno;
 
@@ -125,14 +126,9 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	va_end(args);
 
 	/* If necessary, get default values for width/height */
-	if (!fullscreen) {
-		w = (width == -1) ? 1024 : width;
-		h = (width == -1) ? 600 : height;
-	} else {
-		SDL_GetDisplayBounds(0, &disp);
-		w = disp.w;
-		h = disp.h;
-	}
+	w = (width == -1) ? 1024 : width;
+	h = (width == -1) ? 600 : height;
+	
 
 	/* Create a window through SDL */
 	err = SDL_CreateWindowAndRenderer(
@@ -145,6 +141,18 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 		errno = ENOMEM; /* This is typically the cause */
 		return errno;
 	}
+
+	/* If fullscreen, set the window's size to the monitor it's on */
+	if (fullscreen) {
+		idx = SDL_GetWindowDisplayIndex(inst->wnd);
+		SDL_GetDisplayBounds(idx, &disp);
+		w = disp.w;
+		h = disp.h;
+
+		SDL_SetWindowSize(inst->wnd, w, h);
+		SDL_SetWindowPosition(inst->wnd, disp.x, disp.y);
+	}
+
 
 	/* Set our window title */
 	SDL_SetWindowTitle(inst->wnd, title_fmt);

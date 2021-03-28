@@ -1,9 +1,9 @@
-[info] inst.c:83 17:55:45 26/3/51: Logger started
-[info] main.c:47 17:55:45 26/3/51: Contents of loaded app info:
+[info] inst.c:83 20:51:34 27/3/51: Logger started
+[info] main.c:54 20:51:34 27/3/51: Contents of loaded app info:
 App name: Purpl Engine Demo
 Log path: demo.log
 Version: 1.0
 Search paths: /mnt/Stuff/purpl-engine/demo;/mnt/Stuff/purpl-engine
-[error] main.c:57 17:55:45 26/3/51: Error: failed to load asset: No such file or directory
-[info] main.c:109 17:55:51 26/3/51: Total runtime: 6.085 seconds
-[warning] log.c:355 17:55:51 26/3/51: This logger instance is terminating. Have a nice evening.
+[error] main.c:64 20:51:34 27/3/51: Error: failed to load asset: No such file or directory
+[info] main.c:116 20:51:36 27/3/51: Total runtime: 2.159 seconds
+[warning] log.c:355 20:51:36 27/3/51: This logger instance is terminating. Have a nice night.

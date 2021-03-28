@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 		purpl_end_inst(inst);
 		return errno;
 	}
-	
+
 
 	/* Run the main game loop */
 	runtime = purpl_inst_run(inst, NULL, frame) / 1000.0;
@@ -146,9 +146,11 @@ int main(int argc, char *argv[])
 	(log_mapped) ? purpl_unmap_file(log_map) :
 			     free(log_cont);
 
+#ifdef _WIN32
 	/* Pause */
 	printf("\n(Press Enter to exit)");
 	NOPE(getc(stdin));
+#endif
 #endif
 
 	return 0;

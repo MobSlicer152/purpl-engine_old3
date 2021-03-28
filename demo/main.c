@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	bool have_ast = false;
 	double runtime;
 	char runtime_s[8];
-#ifndef _NDEBUG
+#ifndef NDEBUG
 	char *log_path;
 	char *log_cont;
 	size_t log_len;
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Create a window (yay it took so long to get here) */
-	err = purpl_inst_create_window(inst, true, -1, -1, "%s, version %d.%d",
+	err = purpl_inst_create_window(inst, false, -1, -1, "%s, version %d.%d",
 				       inst->info->name, inst->info->ver_maj,
 				       inst->info->ver_min);
 	if (err) {
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 	purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1, -1,
 			"Total runtime: %0.3lf %s", runtime, runtime_s);
 
-#ifndef _NDEBUG
+#ifndef NDEBUG
 	/* Save our log's filename */
 	log_path = PURPL_CALLOC(strlen(inst->info->log) + 1, char);
 	if (!log_path) {
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	/* Close the instance */
 	purpl_end_inst(inst);
 
-#ifndef _NDEBUG
+#ifndef NDEBUG
 	/* Read the contents of the log */
 	log_cont = purpl_read_file(&log_len, &log_map, &log_mapped, "%s", log_path);
 	if (!log_cont) {

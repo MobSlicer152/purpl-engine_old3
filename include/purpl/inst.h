@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <time.h>
+#include <Windows.h>
 
 #include <SDL.h>
 

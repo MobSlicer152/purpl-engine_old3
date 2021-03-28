@@ -160,6 +160,11 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	/* Get the window surface */
 	inst->surf = SDL_GetWindowSurface(inst->wnd);
 
+#ifdef NDEBUG
+	/* Free the console */
+	FreeConsole();
+#endif
+
 	/* Free our title format pointer */
 	(title_len < 0) ? (void)0 : free(title_fmt);
 

@@ -33,6 +33,11 @@ include_directories(include deps/cglm/include ${CMAKE_BINARY_DIR}/deps/glew-${PU
 # Necessary because MSVC is incabable of sane warnings and Werror therefore doesn't work
 if (MSVC)
 	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
+	if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -MDd")
+	else()
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -MD")
+	endif()
 endif()
 
 add_subdirectory(deps)
@@ -58,15 +63,16 @@ if (${PURPL_BUILD_TOOLS})
 	add_subdirectory(tools)
 endif()
 
+add_library(stb STATIC "src/stb.c")
+add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES})
+target_link_libraries(purpl archive_static cglm glew json-c SDL2::SDL2-static stb)
+
 if (${PURPL_BUILD_DEMO})
     add_subdirectory(demo)
-	if (MSVC_IDE)
+	if (${MSVC_IDE})
 		set(VS_STARTUP_PROJECT purpl-demo)
 	endif()
 endif()
-
-add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES} "src/stb.c")
-target_link_libraries(purpl archive_static cglm glew json-c SDL2::SDL2-static)
 
 if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	target_link_libraries(purpl OpenGL::GL)

@@ -11,7 +11,10 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_EXTENSIONS TRUE)
 
-set(CMAKE_C_FLAGS "-O2 -DPURPL_USE_${PURPL_GRAPHICS_API}")
+# Validate the graphics API selection
+if (NOT ${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
+	message(FATAL_ERROR "PURPL_GRAPHICS_API must be one of the following: OPENGL")
+endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	find_package(X11)
@@ -51,6 +54,7 @@ if (NOT MSVC)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-discarded-qualifiers")
 	endif()
 endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPURPL_USE_${PURPL_GRAPHICS_API}_GFX=1 -O2")
 
 add_subdirectory(include)
 add_subdirectory(src)

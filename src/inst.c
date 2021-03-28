@@ -103,7 +103,6 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	s64 title_len;
 	SDL_Rect disp;
 	uint idx;
-	int err;
 	int ___errno;
 
 	PURPL_SAVE_ERRNO(___errno);
@@ -115,7 +114,7 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	}
 
 	/* Avoid orphaning a window's memory */
-	if (inst->wnd || inst->renderer) {
+	if (inst->wnd) {
 		errno = EEXIST;
 		return errno;
 	}
@@ -129,15 +128,27 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	w = (width == -1) ? 1024 : width;
 	h = (width == -1) ? 600 : height;
 
+	/* Set hints for graphics context creation */
+#if PURPL_USE_OPENGL_GFX
+	/*
+	 * Most GPUs support OpenGL 4.6, and by the time this is used for
+	 *  anything, this won't be something to worry about
+	 */
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+			    SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
+
 	/* Create a window through SDL */
-	err = SDL_CreateWindowAndRenderer(
-		w, h,
-		SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
-			SDL_WINDOW_RESIZABLE |
+	inst->wnd = SDL_CreateWindow(
+		title_fmt, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w,
+		h,
+		SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_SHOWN |
+			SDL_WINDOW_RESIZABLE | PURPL_GRAPHICS_FLAGS |
 			/* This is really simple but feels really big brain */
-			((fullscreen) ? SDL_WINDOW_BORDERLESS : 0),
-		&inst->wnd, &inst->renderer);
-	if (err < 0) {
+			((fullscreen) ? SDL_WINDOW_BORDERLESS : 0));
+	if (!inst->wnd) {
 		errno = ENOMEM; /* This is typically the cause */
 		return errno;
 	}
@@ -153,19 +164,63 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 		SDL_SetWindowPosition(inst->wnd, disp.x, disp.y);
 	}
 
-	/* Set our window title */
-	SDL_SetWindowTitle(inst->wnd, title_fmt);
-
-	/* Get the window surface */
-	inst->surf = SDL_GetWindowSurface(inst->wnd);
-
-#ifdef NDEBUG
-	/* Free the console */
+#if defined NDEBUG && defined _WIN32
+	/* Eviscerate the console */
 	FreeConsole();
 #endif
 
 	/* Free our title format pointer */
 	(title_len < 0) ? (void)0 : free(title_fmt);
+
+	PURPL_RESTORE_ERRNO(___errno);
+
+	return 0;
+}
+
+int purpl_inst_init_graphics(struct purpl_inst *inst)
+{
+	int err;
+	int ___errno;
+
+	PURPL_SAVE_ERRNO(___errno);
+
+	/* Check the instance */
+	if (!inst || !inst->wnd) {
+		errno = EINVAL;
+		return errno;
+	}
+
+	/* API-dependant code follows */
+#if PURPL_USE_OPENGL_GFX
+	/* Initialize our context */
+	inst->ctx = SDL_GL_CreateContext(inst->wnd);
+	if (!inst->ctx) {
+		errno = EOPNOTSUPP;
+		return errno;
+	}
+
+	/* Initialize GLEW */
+	glewExperimental = true;
+	err = glewInit();
+	if (err != GLEW_OK) {
+		errno = ENOTRECOVERABLE;
+		return errno;
+	}
+
+	/* Enable VSync (TODO: make this controlled by settings file) */
+	SDL_GL_SetSwapInterval(1);
+
+	/* Initialize projection matrix */
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	/* Initialize model view matrix */
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	/* Set clear color to black */
+	glClearColor(0, 0, 0, 0);
+#endif
 
 	PURPL_RESTORE_ERRNO(___errno);
 
@@ -186,7 +241,7 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 	PURPL_SAVE_ERRNO(___errno);
 
 	/* Check arguments */
-	if (!inst || !frame) {
+	if (!inst || !inst->wnd || !inst->ctx || !frame) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -204,9 +259,10 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 				inst->running = false;
 		}
 
-		/* Clear before drawing anything */
-		SDL_SetRenderDrawColor(inst->renderer, 0x0, 0x0, 0x0, 0xFF);
-		SDL_RenderClear(inst->renderer);
+		/* Clear the window */
+#if PURPL_USE_OPENGL_GFX
+		glClear(GL_COLOR_BUFFER_BIT);
+#endif
 
 		/* Get the time */
 		now = SDL_GetTicks();
@@ -219,9 +275,10 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 		last = now;
 		now = SDL_GetTicks();
 
-		/* Update the window surface */
-		SDL_RenderFlush(inst->renderer);
-		SDL_RenderPresent(inst->renderer);
+		/* Display rendered frame */
+#if PURPL_USE_OPENGL_GFX
+		SDL_GL_SwapWindow(inst->wnd);
+#endif
 	}
 
 	PURPL_RESTORE_ERRNO(___errno);
@@ -269,7 +326,7 @@ const char *purpl_inst_load_asset_from_file(struct purpl_inst *inst, bool map,
 	}
 	strcpy(tmp, ast->name);
 
-	/* Append the asset to the lis4t */
+	/* Append the asset to the list */
 	stbds_shput(inst->assets, tmp, ast);
 
 	PURPL_RESTORE_ERRNO(___errno);
@@ -315,8 +372,7 @@ void purpl_inst_destroy_window(struct purpl_inst *inst)
 		return;
 	}
 
-	/* Destroy the renderer and then the window */
-	SDL_DestroyRenderer(inst->renderer);
+	/* Destroy the window */
 	SDL_DestroyWindow(inst->wnd);
 
 	PURPL_RESTORE_ERRNO(___errno);

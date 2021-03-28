@@ -14,6 +14,11 @@
 
 #include <SDL.h>
 
+#if PURPL_USE_OPENGL_GFX
+#include <GL/glew.h>
+#include <SDL_opengl.h>
+#endif
+
 #include <stb_ds.h>
 
 #include "app_info.h"
@@ -23,6 +28,13 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+/**
+ * @brief Macros for SDL window creation flags  
+ */
+#if PURPL_USE_OPENGL_GFX
+#define PURPL_GRAPHICS_FLAGS SDL_WINDOW_OPENGL
 #endif
 
 /**
@@ -48,8 +60,11 @@ struct purpl_inst {
 	struct purpl_asset_list
 		*assets; /**< The list of assets opened, see `stb_ds.h` */
 	struct SDL_Window *wnd; /**< The SDL window */
-	struct SDL_Surface *surf; /**< The surface of the window */
-	struct SDL_Renderer *renderer; /**< The SDL renderer (OpenGL stuff) */
+
+	/* Graphics API specifics */
+#if PURPL_USE_OPENGL_GFX
+	SDL_GLContext ctx;
+#endif
 };
 
 /**
@@ -89,6 +104,18 @@ extern struct purpl_inst *purpl_create_inst(bool allow_external_app_info,
 extern int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 				    int width, int height, const char *title,
 				    ...);
+
+/**
+ * @brief Initialize graphics for `inst`
+ * 
+ * @param inst is the instance to initialize graphics for
+ *
+ * @return Returns 0 for success or sets and returns `errno` in the event of an
+ *  error.
+ * 
+ * Call this _after_ you've created a window with `purpl_inst_create_window`.
+ */
+extern int purpl_inst_init_graphics(struct purpl_inst *inst);
 
 /**
  * @brief Run `inst`

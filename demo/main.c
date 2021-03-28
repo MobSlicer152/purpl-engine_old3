@@ -73,16 +73,18 @@ int main(int argc, char *argv[])
 		/* Put the asset's contents in the log */
 		test = stbds_shget(inst->assets, test_name);
 		if (!test) {
-			purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1,
-					PURPL_FATAL,
-					"Error: failed to get asset from list: %s",
-					strerror(errno));
+			purpl_write_log(
+				inst->logger, __FILENAME__, __LINE__, -1,
+				PURPL_FATAL,
+				"Error: failed to get asset from list: %s",
+				strerror(errno));
 			free(test_name);
 			purpl_end_inst(inst);
 			return errno;
 		}
 		purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1, -1,
-				"Contents of \"%s\":\n%s", test->name, test->data);
+				"Contents of \"%s\":\n%s", test->name,
+				test->data);
 	}
 
 	/* Create a window (yay it took so long to get here) */
@@ -99,6 +101,17 @@ int main(int argc, char *argv[])
 		return errno;
 	}
 
+	/* Initialize graphics */
+	err = purpl_inst_init_graphics(inst);
+	if (err) {
+		purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1,
+				PURPL_FATAL,
+				"Error: failed to initialize graphics: %s\n",
+				strerror(errno));
+		free(test_name);
+		purpl_end_inst(inst);
+		return errno;
+	}
 
 	/* Run the main game loop */
 	runtime = purpl_inst_run(inst, NULL, frame) / 1000.0;
@@ -132,9 +145,11 @@ int main(int argc, char *argv[])
 
 #ifndef NDEBUG
 	/* Read the contents of the log */
-	log_cont = purpl_read_file(&log_len, &log_map, &log_mapped, "%s", log_path);
+	log_cont = purpl_read_file(&log_len, &log_map, &log_mapped, "%s",
+				   log_path);
 	if (!log_cont) {
-		fprintf(stderr, "Error: failed to read file: %s\n", strerror(errno));
+		fprintf(stderr, "Error: failed to read file: %s\n",
+			strerror(errno));
 		return errno;
 	}
 
@@ -143,8 +158,7 @@ int main(int argc, char *argv[])
 
 	/* Free stuff */
 	free(log_path);
-	(log_mapped) ? purpl_unmap_file(log_map) :
-			     free(log_cont);
+	(log_mapped) ? purpl_unmap_file(log_map) : free(log_cont);
 
 #ifdef _WIN32
 	/* Pause */
@@ -181,11 +195,4 @@ void frame(struct purpl_inst *inst, SDL_Event e, uint delta, void *user)
 		total = 0;
 		yellow = !yellow;
 	}
-	if (yellow)
-		SDL_SetRenderDrawColor(inst->renderer, 0xFF, 0xFF, 0x0, 0xFF);
-	else
-		SDL_SetRenderDrawColor(inst->renderer, 0x9F, 0x0, 0xFF, 0xFF);
-
-	/* Fill the rectangle */
-	SDL_RenderFillRect(inst->renderer, &rect);
 }

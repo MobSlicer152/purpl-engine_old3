@@ -128,12 +128,12 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	/* If necessary, get default values for width/height */
 	w = (width == -1) ? 1024 : width;
 	h = (width == -1) ? 600 : height;
-	
 
 	/* Create a window through SDL */
 	err = SDL_CreateWindowAndRenderer(
 		w, h,
 		SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
+			SDL_WINDOW_RESIZABLE |
 			/* This is really simple but feels really big brain */
 			((fullscreen) ? SDL_WINDOW_BORDERLESS : 0),
 		&inst->wnd, &inst->renderer);
@@ -152,7 +152,6 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 		SDL_SetWindowSize(inst->wnd, w, h);
 		SDL_SetWindowPosition(inst->wnd, disp.x, disp.y);
 	}
-
 
 	/* Set our window title */
 	SDL_SetWindowTitle(inst->wnd, title_fmt);
@@ -174,8 +173,8 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 }
 
 uint purpl_inst_run(struct purpl_inst *inst, void *user,
-		    void(frame)(struct purpl_inst *inst, SDL_Event e, uint delta,
-				void *user))
+		    void(frame)(struct purpl_inst *inst, SDL_Event e,
+				uint delta, void *user))
 {
 	uint delta;
 	uint beginning;
@@ -226,7 +225,7 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 	}
 
 	PURPL_RESTORE_ERRNO(___errno);
-	
+
 	/* We're done now */
 	return now - beginning;
 }

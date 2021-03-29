@@ -56,6 +56,8 @@ if (NOT MSVC)
 endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPURPL_USE_${PURPL_GRAPHICS_API}_GFX=1 -O2")
 
+message(STATUS "Purpl Engine's CFLAGS: ${CMAKE_C_FLAGS}")
+
 add_subdirectory(include)
 add_subdirectory(src)
 
@@ -69,7 +71,7 @@ endif()
 
 add_library(stb STATIC "src/stb.c")
 add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES})
-target_link_libraries(purpl archive_static cglm glew json-c SDL2::SDL2-static stb)
+target_link_libraries(purpl archive_static cglm glew_s json-c SDL2::SDL2-static stb)
 
 if (${PURPL_BUILD_DEMO})
     add_subdirectory(demo)

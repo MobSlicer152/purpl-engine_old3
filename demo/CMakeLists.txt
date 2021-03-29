@@ -30,4 +30,4 @@ set(PURPL_DEMO_SOURCES
 )
 
 add_executable(purpl-demo ${PURPL_DEMO_HEADERS} ${PURPL_DEMO_SOURCES})
-target_link_libraries(purpl-demo purpl SDL2::SDL2main stb)
+target_link_libraries(purpl-demo glew_s purpl SDL2::SDL2main stb)

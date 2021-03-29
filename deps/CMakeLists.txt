@@ -10,7 +10,6 @@ if(${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 				   COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_COMMAND} -E tar xvf ${CMAKE_CURRENT_BINARY_DIR}/glew.zip --format=zip
 				   VERBATIM)
 	endif()
-	add_library(glew STATIC ${PURPL_GLEW_SOURCE})
 endif()
 
 set(ENABLE_CAT OFF CACHE BOOL "Disable bsdcat" FORCE)
@@ -21,6 +20,8 @@ set(ENABLE_TEST OFF CACHE BOOL "Disable tests" FORCE)
 
 add_subdirectory(cglm)
 add_subdirectory(json-c)
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/glew-${PURPL_GLEW_VER}/build/cmake ${CMAKE_CURRENT_BINARY_DIR}/glew) # Goes after json-c to fix uninstall target duplicate
+set_target_properties(glew PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1) # Disable any and all shared libraries
 add_subdirectory(libarchive)
-set_target_properties(archive PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1) # Disable any and all shared libraries
+set_target_properties(archive PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 add_subdirectory(sdl2)

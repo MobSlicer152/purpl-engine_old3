@@ -179,6 +179,8 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 
 int purpl_inst_init_graphics(struct purpl_inst *inst)
 {
+	uint w;
+	uint h;
 	int err;
 	int ___errno;
 
@@ -198,6 +200,10 @@ int purpl_inst_init_graphics(struct purpl_inst *inst)
 		errno = EOPNOTSUPP;
 		return errno;
 	}
+
+	/* Set viewport size */
+	SDL_GetWindowSize(inst->wnd, &w, &h);
+	glViewport(0, 0, w, h);
 
 	/* Initialize GLEW */
 	glewExperimental = true;
@@ -219,7 +225,7 @@ int purpl_inst_init_graphics(struct purpl_inst *inst)
 	glLoadIdentity();
 
 	/* Set clear color to black */
-	glClearColor(0, 0, 0, 0);
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 #endif
 
 	PURPL_RESTORE_ERRNO(___errno);
@@ -231,6 +237,8 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 		    void(frame)(struct purpl_inst *inst, SDL_Event e,
 				uint delta, void *user))
 {
+	uint w;
+	uint h;
 	uint delta;
 	uint beginning;
 	uint last;
@@ -259,8 +267,12 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 				inst->running = false;
 		}
 
-		/* Clear the window */
 #if PURPL_USE_OPENGL_GFX
+		/* Reset viewport size */
+		SDL_GetWindowSize(inst->wnd, &w, &h);
+		glViewport(0, 0, w, h);
+
+		/* Clear the window */
 		glClear(GL_COLOR_BUFFER_BIT);
 #endif
 
@@ -371,7 +383,12 @@ void purpl_inst_destroy_window(struct purpl_inst *inst)
 		errno = EINVAL;
 		return;
 	}
-
+	
+#if PURPL_USE_OPENGL_GFX
+	/* Destroy the context */
+	SDL_GL_DeleteContext(inst->ctx);
+#endif
+	
 	/* Destroy the window */
 	SDL_DestroyWindow(inst->wnd);
 
@@ -405,6 +422,9 @@ void purpl_end_inst(struct purpl_inst *inst)
 
 	/* Make sure the window is closed */
 	purpl_inst_destroy_window(inst);
+
+	/* Shut down SDL */
+	SDL_Quit();
 
 	/* Free the structure */
 	free(inst);

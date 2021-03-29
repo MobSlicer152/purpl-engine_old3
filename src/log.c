@@ -222,7 +222,7 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 	fp = logger->logs[idx];
 
 	/* Format the message */
-	msg = purpl_fmt_text(&msg_len, "%s%s:%d %d:%d:%d %d/%d/%d: %s",
+	msg = purpl_fmt_text(&msg_len, "%s%s:%d %0.2d:%0.2d:%0.4d %d/%d/%d: %s",
 			     lvl_pre, file, line, now->tm_hour, now->tm_min,
 			     now->tm_sec, now->tm_mday, now->tm_mon + 1,
 			     now->tm_year - 70, fmt_ptr);

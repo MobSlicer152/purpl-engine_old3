@@ -43,9 +43,9 @@ extern "C" {
 #endif
 
 /**
- * @brief Defined when not Windows, to be expanded  
+ * @brief Defined when not Windows, to be expanded
  */
-#if !defined _WIN32 && !defined _MSC_VER && !defined __CYGWIN__
+#if !defined _WIN32 && !defined _MSC_VER
 #define PROBABLY_POSIX 1
 #endif
 
@@ -73,7 +73,7 @@ extern "C" {
 	((target)((val) & ((1 << (sizeof(val) << 3)) - 1)))
 
 /**
- * @brief 10% more convenient `calloc` for arrays
+ * @brief 10% more convenient `calloc` for arrays.
  */
 #define PURPL_CALLOC(count, type) ((type *)calloc((count), sizeof(type)))
 

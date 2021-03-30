@@ -153,6 +153,9 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 		return errno;
 	}
 
+	/* Save the starting position of the window */
+	SDL_GetWindowPosition(inst->wnd, &inst->default_x, &inst->default_y);
+
 	/* If fullscreen, set the window's size to the monitor it's on */
 	if (fullscreen) {
 		idx = SDL_GetWindowDisplayIndex(inst->wnd);
@@ -226,7 +229,7 @@ int purpl_inst_init_graphics(struct purpl_inst *inst)
 	glLoadIdentity();
 
 	/* Set clear color to black */
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 #endif
 
 	PURPL_RESTORE_ERRNO(___errno);
@@ -300,15 +303,26 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 							inst->default_h);
 						SDL_SetWindowPosition(
 							inst->wnd,
-							SDL_WINDOWPOS_CENTERED_DISPLAY(
-								idx),
-							SDL_WINDOWPOS_CENTERED_DISPLAY(
-								idx));
+							inst->default_x,
+							inst->default_y);
 						fullscreen = false;
 					}
 					SDL_SetWindowBordered(inst->wnd,
 							      !fullscreen);
 					break;
+				}
+				break;
+			case SDL_WINDOWEVENT:
+				/* Handle resizing and moving */
+				if (inst->wnd == SDL_GetWindowFromID(
+							 e.window.windowID) &&
+				    !fullscreen) {
+					SDL_GetWindowPosition(inst->wnd,
+							      &inst->default_x,
+							      &inst->default_y);
+					SDL_GetWindowSize(inst->wnd,
+							  &inst->default_w,
+							  &inst->default_h);
 				}
 				break;
 			}
@@ -334,7 +348,7 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 		/* Get the time again */
 		last = now;
 		now = SDL_GetTicks();
-		
+
 		/* Display rendered frame */
 #if PURPL_USE_OPENGL_GFX
 		SDL_GL_SwapWindow(inst->wnd);

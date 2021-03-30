@@ -3,3 +3,4 @@ out
 .vs
 docs
 deps/glew
+/deps/glew-2.2.0

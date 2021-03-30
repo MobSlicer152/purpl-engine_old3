@@ -1,4 +1,4 @@
-#include "purpl/purpl.h"
+#include "purpl/inst.h"
 
 struct purpl_inst *purpl_create_inst(bool allow_external_app_info,
 				     bool start_log, char *embed_start,
@@ -263,6 +263,9 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 	/* Get the time */
 	beginning = SDL_GetTicks();
 
+	/* Determine if the window is fullscreened */
+	fullscreen = (SDL_GetWindowFlags(inst->wnd) & SDL_WINDOW_BORDERLESS);
+
 	/* Start the loop */
 	inst->running = true;
 	last = beginning;
@@ -319,18 +322,19 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 		/* Clear the window */
 		glClear(GL_COLOR_BUFFER_BIT);
 #endif
-
 		/* Get the time */
 		now = SDL_GetTicks();
 
-		/* Call the frame function */
-		delta = now - last;
-		frame(inst, e, delta, user);
+		/* Call the frame function if the window is shown */
+		if (SDL_GetWindowFlags(inst->wnd) & SDL_WINDOW_INPUT_FOCUS) {
+			delta = now - last;
+			frame(inst, e, delta, user);
+		}
 
 		/* Get the time again */
 		last = now;
 		now = SDL_GetTicks();
-
+		
 		/* Display rendered frame */
 #if PURPL_USE_OPENGL_GFX
 		SDL_GL_SwapWindow(inst->wnd);

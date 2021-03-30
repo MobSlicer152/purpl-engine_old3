@@ -9,7 +9,8 @@ git clone --recursive https://github.com/MobSlicer152/purpl-engine.git
 ```
 and build like this
 ```sh
-# Currently there's no special flag for graphics because only OpenGL is planned for (Vulkan is a pain)
+# Also note that GLEW has to be downloaded so that nothing has to be generated, with the downside that
+#  a network connection is needed
 cmake -S. -Bbuild
 cmake --build build # If you used the Makefile or Ninja generator, add on "-j`nproc`" to make things go faster (POSIX shell w/ coreutils or similar only)
 build/purpl-demo

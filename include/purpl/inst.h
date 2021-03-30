@@ -60,6 +60,8 @@ struct purpl_inst {
 	struct purpl_asset_list
 		*assets; /**< The list of assets opened, see `stb_ds.h` */
 	struct SDL_Window *wnd; /**< The SDL window */
+	int default_w; /**< The non-fullscreen width of the window */
+	int default_h; /**< The non-fullscreen height of the window */
 
 	/* Graphics API specifics */
 #if PURPL_USE_OPENGL_GFX

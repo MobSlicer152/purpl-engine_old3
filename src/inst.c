@@ -101,7 +101,7 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	int h;
 	char *title_fmt;
 	s64 title_len;
-	SDL_Rect disp;
+	struct SDL_Rect disp;
 	uint idx;
 	int ___errno;
 
@@ -125,8 +125,10 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 	va_end(args);
 
 	/* If necessary, get default values for width/height */
-	w = (width == -1) ? 1024 : width;
-	h = (width == -1) ? 600 : height;
+	inst->default_w = (width == -1) ? 1024 : width;
+	inst->default_h = (width == -1) ? 600 : height;
+	w = inst->default_w;
+	h = inst->default_h;
 
 	/* Set hints for graphics context creation */
 #if PURPL_USE_OPENGL_GFX
@@ -141,13 +143,11 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 #endif
 
 	/* Create a window through SDL */
-	inst->wnd = SDL_CreateWindow(
-		title_fmt, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w,
-		h,
-		SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_SHOWN |
-			SDL_WINDOW_RESIZABLE | PURPL_GRAPHICS_FLAGS |
-			/* This is really simple but feels really big brain */
-			((fullscreen) ? SDL_WINDOW_BORDERLESS : 0));
+	inst->wnd = SDL_CreateWindow(title_fmt, SDL_WINDOWPOS_UNDEFINED,
+				     SDL_WINDOWPOS_UNDEFINED, w, h,
+				     SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_SHOWN |
+					     SDL_WINDOW_RESIZABLE |
+					     PURPL_GRAPHICS_FLAGS);
 	if (!inst->wnd) {
 		errno = ENOMEM; /* This is typically the cause */
 		return errno;
@@ -162,6 +162,7 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 
 		SDL_SetWindowSize(inst->wnd, w, h);
 		SDL_SetWindowPosition(inst->wnd, disp.x, disp.y);
+		SDL_SetWindowBordered(inst->wnd, !fullscreen);
 	}
 
 #if defined NDEBUG && defined _WIN32
@@ -237,13 +238,18 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 		    void(frame)(struct purpl_inst *inst, SDL_Event e,
 				uint delta, void *user))
 {
-	uint w;
-	uint h;
+	int w;
+	int h;
+	int last_w;
+	int last_h;
+	bool fullscreen;
 	uint delta;
 	uint beginning;
 	uint last;
 	uint now;
 	SDL_Event e;
+	int idx;
+	struct SDL_Rect disp;
 	int ___errno;
 
 	PURPL_SAVE_ERRNO(___errno);
@@ -263,8 +269,46 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 	while (inst->running) {
 		/* Process events */
 		while (SDL_PollEvent(&e) != 0) {
-			if (e.type == SDL_QUIT)
+			switch (e.type) {
+			case SDL_QUIT:
 				inst->running = false;
+				break;
+			case SDL_KEYUP:
+				switch (e.key.keysym.scancode) {
+				case SDL_SCANCODE_F11:
+					idx = SDL_GetWindowDisplayIndex(
+						inst->wnd);
+					if (!fullscreen) {
+						SDL_GetDisplayBounds(idx,
+								     &disp);
+						w = disp.w;
+						h = disp.h;
+
+						SDL_SetWindowSize(inst->wnd, w,
+								  h);
+						SDL_SetWindowPosition(inst->wnd,
+								      disp.x,
+								      disp.y);
+						fullscreen = true;
+					} else {
+						SDL_SetWindowSize(
+							inst->wnd,
+							inst->default_w,
+							inst->default_h);
+						SDL_SetWindowPosition(
+							inst->wnd,
+							SDL_WINDOWPOS_CENTERED_DISPLAY(
+								idx),
+							SDL_WINDOWPOS_CENTERED_DISPLAY(
+								idx));
+						fullscreen = false;
+					}
+					SDL_SetWindowBordered(inst->wnd,
+							      !fullscreen);
+					break;
+				}
+				break;
+			}
 		}
 
 #if PURPL_USE_OPENGL_GFX
@@ -383,12 +427,12 @@ void purpl_inst_destroy_window(struct purpl_inst *inst)
 		errno = EINVAL;
 		return;
 	}
-	
+
 #if PURPL_USE_OPENGL_GFX
 	/* Destroy the context */
 	SDL_GL_DeleteContext(inst->ctx);
 #endif
-	
+
 	/* Destroy the window */
 	SDL_DestroyWindow(inst->wnd);
 

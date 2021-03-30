@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Create a window (yay it took so long to get here) */
-	err = purpl_inst_create_window(inst, false, -1, -1, "%s, version %d.%d",
+	err = purpl_inst_create_window(inst, false, 800, 600, "%s, version %d.%d",
 				       inst->info->name, inst->info->ver_maj,
 				       inst->info->ver_min);
 	if (err) {

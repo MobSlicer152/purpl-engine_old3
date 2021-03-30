@@ -2,4 +2,4 @@ build
 out
 .vs
 docs
-deps/glew*
+deps/glew

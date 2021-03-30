@@ -13,7 +13,7 @@ set(CMAKE_C_EXTENSIONS TRUE)
 
 # Validate the graphics API selection
 if (NOT ${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
-	message(FATAL_ERROR "PURPL_GRAPHICS_API must be one of the following: OPENGL")
+	message(FATAL_ERROR "PURPL_GRAPHICS_API must be one of the following:\nOPENGL")
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -30,9 +30,6 @@ if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
 	include_directories(${OPENGL_INCLUDE_DIR})
 endif()
 
-set(PURPL_GLEW_VER 2.2.0)
-include_directories(include deps/cglm/include ${CMAKE_BINARY_DIR}/deps/glew-${PURPL_GLEW_VER}/include deps/json-c deps/libarchive/libarchive deps/stb)
-
 # Necessary because MSVC is incabable of sane warnings and Werror therefore doesn't work
 if (MSVC)
 	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
@@ -41,9 +38,16 @@ if (MSVC)
 	else()
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -MD")
 	endif()
+
+	if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DGLEW_STATIC")
+	endif()
 endif()
 
+set(PURPL_GLEW_VER 2.2.0)
+
 add_subdirectory(deps)
+include_directories(include deps/cglm/include deps/glew-${PURPL_GLEW_VER}/include deps/json-c deps/libarchive/libarchive deps/stb)
 
 # Set our compiler flags
 if (NOT MSVC)
@@ -71,7 +75,7 @@ endif()
 
 add_library(stb STATIC "src/stb.c")
 add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES})
-target_link_libraries(purpl archive_static cglm glew_s json-c SDL2::SDL2-static stb)
+target_link_libraries(purpl archive_static cglm json-c SDL2::SDL2 stb)
 
 if (${PURPL_BUILD_DEMO})
     add_subdirectory(demo)
@@ -81,7 +85,7 @@ if (${PURPL_BUILD_DEMO})
 endif()
 
 if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
-	target_link_libraries(purpl OpenGL::GL)
+	target_link_libraries(purpl glew OpenGL::GL)
 
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		target_link_libraries(purpl OpenGL::GLX)

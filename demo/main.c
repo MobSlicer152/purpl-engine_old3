@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Print the log's contents */
-	printf("Log contents:\n%s", log_cont);
+	printf("Contents of log file \"%s\":\n%s", log_path, log_cont);
 
 	/* Free stuff */
 	free(log_path);

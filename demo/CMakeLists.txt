@@ -32,6 +32,12 @@ set(PURPL_DEMO_SOURCES
 add_executable(purpl-demo ${PURPL_DEMO_HEADERS} ${PURPL_DEMO_SOURCES})
 target_link_libraries(purpl-demo purpl SDL2::SDL2main)
 
+# Set the demo as the Visual Studio startup project
+if (MSVC)
+	set(VS_STARTUP_PROJECT purpl-demo)
+	set_target_properties(purpl-demo PROPERTIES VS_USER_PROPS "${CMAKE_CURRENT_LIST_DIR}/purpl-demo.vcxproj.user")
+endif()
+
 # Copy SDL's output to this directory
 add_custom_command(TARGET purpl-demo POST_BUILD
 				   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SDL2::SDL2> $<TARGET_FILE_DIR:purpl-demo>

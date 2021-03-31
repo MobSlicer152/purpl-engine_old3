@@ -34,9 +34,9 @@ endif()
 if (MSVC)
 	set(CMAKE_C_FLAGS "-w -TC -wd4996") # If you add POSIX functions, don't rename them just to fuck up our code
 	if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -MDd")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -MTd")
 	else()
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -MD")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -MT")
 	endif()
 
 	if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")
@@ -79,9 +79,6 @@ target_link_libraries(purpl archive_static cglm json-c SDL2::SDL2 stb)
 
 if (${PURPL_BUILD_DEMO})
     add_subdirectory(demo)
-	if (${MSVC_IDE})
-		set(VS_STARTUP_PROJECT purpl-demo)
-	endif()
 endif()
 
 if (${PURPL_GRAPHICS_API} STREQUAL "OPENGL")

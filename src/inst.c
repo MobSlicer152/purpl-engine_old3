@@ -273,7 +273,8 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 	inst->running = true;
 	last = beginning;
 	while (inst->running) {
-		/* Process events */
+		/* Process events (turn off clang-format cause crazy edge-case formatting) */
+		/* clang-format off */
 		while (SDL_PollEvent(&e) != 0) {
 			switch (e.type) {
 			case SDL_QUIT:
@@ -282,51 +283,45 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 			case SDL_KEYUP:
 				switch (e.key.keysym.scancode) {
 				case SDL_SCANCODE_F11:
-					idx = SDL_GetWindowDisplayIndex(
-						inst->wnd);
+					/* Handle fullscreen toggling */
+					idx = SDL_GetWindowDisplayIndex(inst->wnd);
 					if (!fullscreen) {
-						SDL_GetDisplayBounds(idx,
-								     &disp);
+						SDL_GetDisplayBounds(idx, &disp);
 						w = disp.w;
 						h = disp.h;
 
-						SDL_SetWindowSize(inst->wnd, w,
-								  h);
-						SDL_SetWindowPosition(inst->wnd,
-								      disp.x,
-								      disp.y);
+						/* Unmaximize the window */
+						if (SDL_GetWindowFlags(inst->wnd) & SDL_WINDOW_MAXIMIZED)
+							SDL_RestoreWindow(inst->wnd);
+
+						/* Set the window size and position */
+						SDL_SetWindowSize(inst->wnd, w, h);
+						SDL_SetWindowPosition(inst->wnd, disp.x, disp.y);
 						fullscreen = true;
 					} else {
-						SDL_SetWindowSize(
-							inst->wnd,
-							inst->default_w,
-							inst->default_h);
-						SDL_SetWindowPosition(
-							inst->wnd,
-							inst->default_x,
-							inst->default_y);
+						/* Set the size and position to the save values */
+						SDL_SetWindowSize(inst->wnd, inst->default_w, inst->default_h);
+						SDL_SetWindowPosition(inst->wnd, inst->default_x, inst->default_y);
 						fullscreen = false;
 					}
-					SDL_SetWindowBordered(inst->wnd,
-							      !fullscreen);
+					SDL_SetWindowBordered(inst->wnd, !fullscreen);
 					break;
 				}
 				break;
 			case SDL_WINDOWEVENT:
-				/* Handle resizing and moving */
-				if (inst->wnd == SDL_GetWindowFromID(
-							 e.window.windowID) &&
-				    !fullscreen) {
-					SDL_GetWindowPosition(inst->wnd,
-							      &inst->default_x,
-							      &inst->default_y);
-					SDL_GetWindowSize(inst->wnd,
-							  &inst->default_w,
-							  &inst->default_h);
+				if (inst->wnd == SDL_GetWindowFromID(e.window.windowID)) {
+					/* Handle resizing and moving */
+					if (!fullscreen) {
+						SDL_GetWindowPosition(inst->wnd, &inst->default_x,
+								      &inst->default_y);
+						SDL_GetWindowSize(inst->wnd, &inst->default_w,
+								  &inst->default_h);
+					}
 				}
 				break;
 			}
 		}
+		/* clang-format on */
 
 #if PURPL_USE_OPENGL_GFX
 		/* Reset viewport size */

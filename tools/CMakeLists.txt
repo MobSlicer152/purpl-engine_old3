@@ -5,4 +5,4 @@ set(MKEMBED_SOURCES
 )
 
 add_executable(mkembed ${MKEMBED_SOURCES})
-target_link_libraries(mkembed purpl)
+target_link_libraries(mkembed purpl_util)

@@ -73,9 +73,9 @@ if (${PURPL_BUILD_TOOLS})
 	add_subdirectory(tools)
 endif()
 
-add_library(stb STATIC "src/stb.c")
+add_library(purpl_util STATIC ${PURPL_UTIL_HEADERS} ${PURPL_UTIL_SOURCES})
 add_library(purpl STATIC ${PURPL_HEADERS} ${PURPL_SOURCES})
-target_link_libraries(purpl archive_static cglm json-c SDL2::SDL2 stb)
+target_link_libraries(purpl archive_static cglm json-c purpl_util SDL2::SDL2)
 
 if (${PURPL_BUILD_DEMO})
     add_subdirectory(demo)

@@ -221,6 +221,12 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 	idx = (index < 0) ? logger->default_index : index;
 	fp = logger->logs[idx];
 
+	/* Handle April Fools' */
+	if (now->tm_mon == 3 && now->tm_mday == 1) {
+		now->tm_mon = 2;
+		now->tm_mday = 32;
+	}
+
 	/* Format the message */
 	msg = purpl_fmt_text(&msg_len, "%s%s:%d %d:%d:%d %0.2d/%0.2d/%0.4d: %s",
 			     lvl_pre, file, line, now->tm_hour, now->tm_min,

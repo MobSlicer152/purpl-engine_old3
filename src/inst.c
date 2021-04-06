@@ -134,7 +134,8 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 #if PURPL_USE_OPENGL_GFX
 	/*
 	 * Most GPUs support OpenGL 4.6, and by the time this is used for
-	 *  anything, this won't be something to worry about
+	 *  anything, this won't be something to worry about (also
+	 *  this is fixed later if the version is too high)
 	 */
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
@@ -183,6 +184,7 @@ int purpl_inst_create_window(struct purpl_inst *inst, bool fullscreen,
 
 int purpl_inst_init_graphics(struct purpl_inst *inst)
 {
+	char *title;
 	uint w;
 	uint h;
 	int err;
@@ -201,8 +203,32 @@ int purpl_inst_init_graphics(struct purpl_inst *inst)
 	/* Initialize our context */
 	inst->ctx = SDL_GL_CreateContext(inst->wnd);
 	if (!inst->ctx) {
-		errno = EOPNOTSUPP;
-		return errno;
+		/* Save the window details */
+		title = SDL_GetWindowTitle(inst->wnd);
+		title = PURPL_CALLOC(strlen(title), char);
+		if (!title)
+			return errno;
+		strcpy(title, SDL_GetWindowTitle(inst->wnd));
+		SDL_GetWindowSize(inst->wnd, &w, &h);
+
+		/* Destroy the window and request a more potato version */
+		purpl_inst_destroy_window(inst);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+				    SDL_GL_CONTEXT_PROFILE_CORE);
+		purpl_inst_create_window(inst, false, w, h, "%s", title);
+		if (!inst->wnd) {
+			free(title);
+			return errno;
+		}
+		free(title);
+
+		inst->ctx = SDL_GL_CreateContext(inst->wnd);
+		if (!inst->ctx) {
+			errno = EOPNOTSUPP;
+			return errno;
+		}
 	}
 
 	/* Set viewport size */
@@ -243,8 +269,6 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 {
 	int w;
 	int h;
-	int last_w;
-	int last_h;
 	bool fullscreen;
 	uint delta;
 	uint beginning;
@@ -448,6 +472,7 @@ void purpl_inst_destroy_window(struct purpl_inst *inst)
 
 	/* Destroy the window */
 	SDL_DestroyWindow(inst->wnd);
+	inst->wnd = NULL;
 
 	PURPL_RESTORE_ERRNO(___errno);
 }

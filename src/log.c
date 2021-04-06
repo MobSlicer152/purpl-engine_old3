@@ -223,6 +223,7 @@ size_t purpl_write_log(struct purpl_logger *logger, const char *file,
 
 	/* Handle April Fools' */
 	if (now->tm_mon == 3 && now->tm_mday == 1) {
+		/* It's really March 32nd (don't pass to asctime cause UB) */
 		now->tm_mon = 2;
 		now->tm_mday = 32;
 	}

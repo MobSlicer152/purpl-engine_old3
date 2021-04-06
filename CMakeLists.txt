@@ -51,7 +51,7 @@ include_directories(include deps/cglm/include deps/glew-${PURPL_GLEW_VER}/includ
 
 # Set our compiler flags
 if (NOT MSVC)
-	set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-deprecated-declarations") # It's 2 warnings disabled out of tons of other warnings, chill
+	set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-deprecated-declarations -Wno-switch -Wno-pointer-sign") # It's 4 warnings disabled out of tons of other warnings, chill
 	if (${CMAKE_C_COMPILER_ID} MATCHES "Clang")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-ignored-qualifiers -Wno-incompatible-pointer-types-discards-qualifiers")
 	else()

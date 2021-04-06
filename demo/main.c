@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
 	bool have_ast = false;
 	double runtime;
 	char runtime_s[8];
+	int ctx_ver_maj;
+	int ctx_ver_min;
 #ifndef NDEBUG
 	char *log_path;
 	char *log_cont;
@@ -94,7 +96,7 @@ int main(int argc, char *argv[])
 	if (err) {
 		purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1,
 				PURPL_FATAL,
-				"Error: failed to create window: %s\n",
+				"Error: failed to create window: %s",
 				strerror(errno));
 		free(test_name);
 		purpl_end_inst(inst);
@@ -106,12 +108,20 @@ int main(int argc, char *argv[])
 	if (err) {
 		purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1,
 				PURPL_FATAL,
-				"Error: failed to initialize graphics: %s\n",
+				"Error: failed to initialize graphics: %s",
 				strerror(errno));
 		free(test_name);
 		purpl_end_inst(inst);
 		return errno;
 	}
+	
+	/* Log the graphics API version */
+#if PURPL_USE_OPENGL_GFX
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &ctx_ver_maj);
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &ctx_ver_min);
+	purpl_write_log(inst->logger, __FILENAME__, __LINE__, -1, -1,
+			"OpenGL context version is %d.%d", ctx_ver_maj, ctx_ver_min);
+#endif
 
 	/* Run the main game loop */
 	runtime = purpl_inst_run(inst, NULL, frame) / 1000.0;

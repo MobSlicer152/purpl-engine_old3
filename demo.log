@@ -1,10 +1,10 @@
-[info] inst.c:83 11:29:44 06/04/0051: Logger started
-[info] main.c:54 11:29:44 06/04/0051: Contents of loaded app info:
+[info] inst.c:83 11:37:6 06/04/0051: Logger started
+[info] main.c:56 11:37:7 06/04/0051: Contents of loaded app info:
 App name: Purpl Engine Demo
 Log path: demo.log
 Version: 1.0
 Search paths: /mnt/Stuff/purpl-engine/demo;/mnt/Stuff/purpl-engine
-[info] main.c:85 11:29:44 06/04/0051: Contents of "/mnt/Stuff/purpl-engine/test.txt":
+[info] main.c:87 11:37:7 06/04/0051: Contents of "/mnt/Stuff/purpl-engine/test.txt":
 This file contains text that will go in the log
-[fatal] main.c:107 11:29:44 06/04/0051: Error: failed to initialize graphics: Operation not supported
-[warning] log.c:362 11:29:44 06/04/0051: This logger instance is terminating. Have a nice morning.
+[fatal] main.c:109 11:37:7 06/04/0051: Error: failed to initialize graphics: Operation not supported
+[warning] log.c:362 11:37:7 06/04/0051: This logger instance is terminating. Have a nice morning.

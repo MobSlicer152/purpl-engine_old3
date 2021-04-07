@@ -311,19 +311,17 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 					idx = SDL_GetWindowDisplayIndex(inst->wnd);
 					if (!fullscreen) {
 						SDL_GetDisplayBounds(idx, &disp);
-						w = disp.w;
-						h = disp.h;
 
 						/* Unmaximize the window */
 						if (SDL_GetWindowFlags(inst->wnd) & SDL_WINDOW_MAXIMIZED)
 							SDL_RestoreWindow(inst->wnd);
 
 						/* Set the window size and position */
-						SDL_SetWindowSize(inst->wnd, w, h);
+						SDL_SetWindowSize(inst->wnd, disp.w, disp.h);
 						SDL_SetWindowPosition(inst->wnd, disp.x, disp.y);
 						fullscreen = true;
 					} else {
-						/* Set the size and position to the save values */
+						/* Set the size and position to the saved values */
 						SDL_SetWindowSize(inst->wnd, inst->default_w, inst->default_h);
 						SDL_SetWindowPosition(inst->wnd, inst->default_x, inst->default_y);
 						fullscreen = false;
@@ -335,7 +333,7 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 			case SDL_WINDOWEVENT:
 				if (inst->wnd == SDL_GetWindowFromID(e.window.windowID)) {
 					/* Handle resizing and moving */
-					if (!fullscreen) {
+					if (!fullscreen && !(SDL_GetWindowFlags(inst->wnd) & SDL_WINDOW_MAXIMIZED)) {
 						SDL_GetWindowPosition(inst->wnd, &inst->default_x,
 								      &inst->default_y);
 						SDL_GetWindowSize(inst->wnd, &inst->default_w,

@@ -9,7 +9,7 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info,
 	bool have_embed;
 	va_list args;
 	char *path;
-	s64 path_len;
+	size_t path_len;
 	int ___errno;
 
 	PURPL_SAVE_ERRNO(___errno);
@@ -24,7 +24,7 @@ struct purpl_inst *purpl_create_inst(bool allow_external_app_info,
 	if (!app_info_path) {
 		/* Allocate a buffer */
 		path_len = strlen("app.json");
-		path = calloc(path_len, sizeof(char));
+		path = calloc(path_len + 1, sizeof(char));
 		if (!path)
 			return NULL;
 
@@ -333,7 +333,8 @@ uint purpl_inst_run(struct purpl_inst *inst, void *user,
 			case SDL_WINDOWEVENT:
 				if (inst->wnd == SDL_GetWindowFromID(e.window.windowID)) {
 					/* Handle resizing and moving */
-					if (!fullscreen && !(SDL_GetWindowFlags(inst->wnd) & SDL_WINDOW_MAXIMIZED)) {
+					if (!fullscreen && !(SDL_GetWindowFlags(inst->wnd)
+					    & SDL_WINDOW_MAXIMIZED)) {
 						SDL_GetWindowPosition(inst->wnd, &inst->default_x,
 								      &inst->default_y);
 						SDL_GetWindowSize(inst->wnd, &inst->default_w,
